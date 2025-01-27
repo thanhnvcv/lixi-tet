@@ -24,7 +24,7 @@
             cursor: pointer;
         }
         #red-packet img {
-            max-width: 100%; /* Đảm bảo hình ảnh không vượt quá kích thước container */
+            max-width: 100%; 
             height: auto;
             border-radius: 10px;
         }
@@ -84,7 +84,6 @@
     <div id="result">
         <p class="message"></p>
         <p class="amount"></p>
-        <img class="result-img" src="" alt="">
     </div>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -111,12 +110,12 @@
                 "100,000 VNĐ"
             ];
 
-            // Thêm sự kiện để lắng nghe chuyển động lắc điện thoại
+
             window.addEventListener('devicemotion', function(event) {
                 let acceleration = event.acceleration;
 
-                // Kiểm tra gia tốc và phát hiện lắc
-                let threshold = 15;  // Ngưỡng gia tốc để phát hiện lắc
+
+                let threshold = 15;  
                 if (
                     Math.abs(acceleration.x) > threshold ||
                     Math.abs(acceleration.y) > threshold ||
@@ -126,7 +125,7 @@
                 }
             });
 
-            // Hàm khi lắc điện thoại hoặc nhấn vào bao lì xì
+
             function triggerLacLixi() {
                 $("#red-packet").css("animation", "none");
                 const randomIndex = Math.floor(Math.random() * messages.length);
@@ -139,11 +138,17 @@
                 $("#after-lac").css("display", "block");
 
                 $("#result").fadeIn();
+
+
+                $('html, body').animate({
+                    scrollTop: $("#after-lac").offset().top  
+                }, 1000);  
             }
 
-            // Sự kiện click vào bao lì xì
+
+
             $("#red-packet").click(function() {
-                triggerLacLixi();  // Gọi hàm khi nhấn bao lì xì
+                triggerLacLixi();  
             });
         });
     </script>
