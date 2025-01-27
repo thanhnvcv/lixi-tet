@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lắc Lì Xì Tết</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #ffecd2;
+            text-align: center;
+            padding: 20px;
+        }
+        h1 {
+            color: #d6336c;
+            font-size: 2rem;
+        }
+        #red-packet {
+            width: 150px;
+            height: auto;
+            margin: 30px auto;
+            position: relative;
+            animation: shake 0.5s infinite;
+            cursor: pointer;
+        }
+        #red-packet img {
+            max-width: 100%; /* Đảm bảo hình ảnh không vượt quá kích thước container */
+            height: auto;
+            border-radius: 10px;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+        }
+        #result {
+            display: none;
+            margin-top: 20px;
+        }
+        .message {
+            font-size: 1.2rem;
+            color: #4CAF50;
+        }
+        .amount {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #d6336c;
+        }
+        .result-img {
+            max-width: 100%;
+            height: auto;
+            margin-top: 15px;
+        }
+        .bao-li-xi {
+            max-width: 100%;
+            height: auto;
+            margin-top: 15px;
+        }
+        .img-after-lac {
+            max-width: 100%;
+            height: auto;
+        }
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.5rem;
+            }
+            .message {
+                font-size: 1rem;
+            }
+            .amount {
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Lắc Lì Xì Tết</h1>
+    <p>Nhấp vào bao lì xì hoặc lắc điện thoại để nhận lộc đầu năm!</p>
+    <div id="red-packet">
+        <img class="bao-li-xi" src="./baolixi.jpg" alt="Bao lì xì">
+    </div>
+    <div id="after-lac">
+        <img class="img-after-lac" src="" alt="">
+    </div>
+    <div id="result">
+        <p class="message"></p>
+        <p class="amount"></p>
+        <img class="result-img" src="" alt="">
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            const messages = [
+                "Đã lì xì là phải đầy phong bì!",
+                "Tết sum vầy, đong đầy tài lộc!",
+                "Flex đến hết năm nhé bạn!",
+                "Công việc vừa ý, túi tiền nặng ký!",
+                "Tình cảm là chính, lì xì là chủ yếu!",
+                "Năm rắn tình duyên mat mắn!"
+            ];
+            const images = [
+                "./chung-nhan.png"
+            ];
+
+            const amounts = [
+                "10,000 VNĐ",
+                "20,000 VNĐ",
+                "30,000 VNĐ",
+                "50,000 VNĐ",
+                "70,000 VNĐ",
+                "100,000 VNĐ"
+            ];
+
+            // Thêm sự kiện để lắng nghe chuyển động lắc điện thoại
+            window.addEventListener('devicemotion', function(event) {
+                let acceleration = event.acceleration;
+
+                // Kiểm tra gia tốc và phát hiện lắc
+                let threshold = 15;  // Ngưỡng gia tốc để phát hiện lắc
+                if (
+                    Math.abs(acceleration.x) > threshold ||
+                    Math.abs(acceleration.y) > threshold ||
+                    Math.abs(acceleration.z) > threshold
+                ) {
+                    triggerLacLixi();
+                }
+            });
+
+            // Hàm khi lắc điện thoại hoặc nhấn vào bao lì xì
+            function triggerLacLixi() {
+                $("#red-packet").css("animation", "none");
+                const randomIndex = Math.floor(Math.random() * messages.length);
+
+                $(".message").text(messages[randomIndex]);
+                $(".amount").text(amounts[randomIndex]);
+                $("#red-packet").css("display", "none");
+                
+                $(".img-after-lac").attr("src", images[0]);
+                $("#after-lac").css("display", "block");
+
+                $("#result").fadeIn();
+            }
+
+            // Sự kiện click vào bao lì xì
+            $("#red-packet").click(function() {
+                triggerLacLixi();  // Gọi hàm khi nhấn bao lì xì
+            });
+        });
+    </script>
+</body>
+</html>
