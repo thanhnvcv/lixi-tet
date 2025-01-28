@@ -20,7 +20,6 @@
             height: auto;
             margin: 30px auto;
             position: relative;
-            animation: shake 0.5s infinite;
             cursor: pointer;
         }
         #red-packet img {
@@ -74,7 +73,7 @@
 </head>
 <body>
     <h1>Lắc Lì Xì Tết</h1>
-    <p>Nhấp vào bao lì xì hoặc lắc điện thoại để nhận lộc đầu năm!</p>
+    <p>Nhấp vào bao lì xì để nhận lộc đầu năm!</p>
     <div id="red-packet">
         <img class="bao-li-xi" src="./baolixi.jpg" alt="Bao lì xì">
     </div>
@@ -111,31 +110,17 @@
             ];
 
 
-            window.addEventListener('devicemotion', function(event) {
-                let acceleration = event.acceleration;
-
-
-                let threshold = 15;  
-                if (
-                    Math.abs(acceleration.x) > threshold ||
-                    Math.abs(acceleration.y) > threshold ||
-                    Math.abs(acceleration.z) > threshold
-                ) {
-                    triggerLacLixi();
-                }
-            });
-
-
             function triggerLacLixi() {
                 $("#red-packet").css("animation", "none");
                 const randomIndex = Math.floor(Math.random() * messages.length);
 
-                $(".message").text(messages[randomIndex]);
-                $(".amount").text(amounts[randomIndex]);
+                
                 $("#red-packet").css("display", "none");
                 
                 $(".img-after-lac").attr("src", images[0]);
                 $("#after-lac").css("display", "block");
+                $(".message").text(messages[randomIndex]);
+                $(".amount").text(amounts[randomIndex]);
 
                 $("#result").fadeIn();
 
@@ -146,9 +131,15 @@
             }
 
 
-
             $("#red-packet").click(function() {
-                triggerLacLixi();  
+
+                $(this).css("animation", "shake 0.5s infinite");
+
+                setTimeout(() => {
+                    $(this).css("animation", "none");
+                    triggerLacLixi();  
+                }, 1000);
+                
             });
         });
     </script>
