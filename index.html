@@ -155,14 +155,12 @@
                 "./chung-nhan.png"
             ];
 
-            // let hasSpun = localStorage.getItem("hasSpun") === "true";
+            let hasSpun = localStorage.getItem("hasSpun") === "true";
 
-            // if (hasSpun) {
-            //     console.log("Người dùng đã lắc lì xì trước đó.");
-            //     $("#red-packet").css("animation", "none").off("click");
-            // } else {
-            //     console.log("Người dùng chưa lắc lì xì. Sẵn sàng lắc!");
-            // }
+            if (hasSpun) {
+                console.log("No No No, Bạn đã lắc lì xì trước đó rồi 😜.");
+                $("#red-packet").css("animation", "none").off("click");
+            }
 
             
             $("#start-btn").click(function() {
@@ -178,13 +176,13 @@
 
             $("#red-packet").click(function() {
 
-                // if (hasSpun) {
-                //     console.log("Lì xì đã được lắc. Không thể lắc thêm lần nữa.");
-                //     return;
-                // }
+                if (hasSpun) {
+                    alert("No No No, Bạn đã lắc lì xì trước đó rồi 😜.");
+                    return;
+                }
 
-                // hasSpun = true;
-                // localStorage.setItem("hasSpun", "true");
+                hasSpun = true;
+                localStorage.setItem("hasSpun", "true");
 
                 $(this).css("animation", "shake 0.5s infinite");
 
