@@ -148,8 +148,7 @@
                 "30,000 VNĐ",
                 "50,000 VNĐ",
                 "70,000 VNĐ",
-                "100,000 VNĐ",
-                "150,000 VNĐ"
+                "100,000 VNĐ"
             ];
             const images = [
                 "./chung-nhan.png"
@@ -197,7 +196,8 @@
                 let userName = $("#user-name").val().trim();
                 let randomIndex = Math.floor(Math.random() * messages.length);
                 let message = messages[randomIndex].replace("{name}", userName);
-                let amount = amounts[randomIndex];
+                let randomAmountIndex = Math.floor(Math.random() * amounts.length);
+                let amount = amounts[randomAmountIndex];
                 $("#red-packet").css("display", "none");
 
                 setTimeout(() => {
