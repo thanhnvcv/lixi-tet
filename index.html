@@ -3,78 +3,28 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Lắc Lì Xì</title>
-
+<title>Nhập tên</title>
 <style>
-html, body {
+body {
     margin: 0;
-    padding: 0;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-    font-family: Arial, sans-serif;
-    background: #ffecd2;
-}
-
-/* ===== INPUT ===== */
-#input-screen {
-    position: fixed;
-    inset: 0;
+    height: 100vh;
     display: flex;
-    flex-direction: column;
     justify-content: center;
     align-items: center;
+    background: #ffecd2;
+    font-family: Arial;
 }
-
-#input-screen input {
+.box {
+    text-align: center;
+}
+input {
     padding: 14px;
     font-size: 18px;
     border-radius: 25px;
     border: 2px solid #d6336c;
     text-align: center;
 }
-
-#input-screen button {
-    margin-top: 15px;
-    padding: 14px 28px;
-    font-size: 18px;
-    border-radius: 30px;
-    border: none;
-    background: linear-gradient(45deg,#ff5733,#d6336c);
-    color: #fff;
-}
-
-/* ===== SHAKE ===== */
-#shake-screen {
-    position: fixed;
-    inset: 0;
-    display: none;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-}
-
-#red-packet {
-    width: 90vw;
-    max-width: 420px;
-    user-select: none;
-}
-
-#money-fly {
-    position: absolute;
-    width: 120px;
-    opacity: 0;
-    transform: translateY(40px) scale(0.5);
-    pointer-events: none;
-}
-
-#hint {
-    margin-top: 20px;
-    font-size: 16px;
-    color: #d6336c;
-}
-
-#shake-btn {
+button {
     margin-top: 15px;
     padding: 14px 30px;
     font-size: 18px;
@@ -83,197 +33,26 @@ html, body {
     background: linear-gradient(45deg,#ff5733,#d6336c);
     color: #fff;
 }
-
-/* ===== RESULT ===== */
-#result {
-    display: none;
-    position: fixed;
-    inset: 0;
-    text-align: center;
-    padding-top: 35vh;
-}
-
-.amount {
-    font-size: 28px;
-    font-weight: bold;
-    color: #d6336c;
-}
-
-/* ===== ANIMATION ===== */
-@keyframes shake {
-    0% { transform: translate(-18px,0); }
-    25% { transform: translate(18px,0); }
-    50% { transform: translate(-18px,0); }
-    75% { transform: translate(18px,0); }
-    100% { transform: translate(0,0); }
-}
-
-@keyframes moneyOut {
-    0% { opacity:0; transform:translateY(40px) scale(0.5); }
-    100% { opacity:1; transform:translateY(-140px) scale(1.1); }
-}
-
-.money-animate {
-    animation: moneyOut 0.9s ease-out forwards;
-}
-
-/* ===== CONFETTI ===== */
-.confetti {
-    position: fixed;
-    width: 10px;
-    height: 10px;
-    top: -10px;
-    animation: fall linear forwards;
-}
-
-@keyframes fall {
-    to {
-        transform: translateY(110vh) rotate(360deg);
-        opacity: 0;
-    }
-}
 </style>
 </head>
-
 <body>
 
-<!-- INPUT -->
-<div id="input-screen">
+<div class="box">
     <input id="username" placeholder="Nhập tên của bạn">
-    <button id="start">Bắt đầu</button>
+    <br>
+    <button onclick="go()">Bắt đầu</button>
 </div>
-
-<!-- SHAKE -->
-<div id="shake-screen">
-    <img id="red-packet" src="./baolixi.jpg">
-    <img id="money-fly" src="./money.png">
-    <div id="hint">📱 Lắc điện thoại hoặc nhấn <b>Lắc lì xì</b></div>
-    <button id="shake-btn">🧧 Lắc lì xì</button>
-</div>
-
-<!-- RESULT -->
-<div id="result">
-    <p id="msg"></p>
-    <p class="amount" id="money"></p>
-</div>
-
-<!-- AUDIO -->
-<audio id="shake-sound" src="./shake.mp3" preload="auto"></audio>
-<audio id="open-sound" src="./open.mp3" preload="auto"></audio>
 
 <script>
-const messages = ["Chúc năm mới phát tài!", "Lộc xuân đầy túi!", "Tiền vô như nước!"];
-const amounts = ["20,000 VNĐ","50,000 VNĐ","100,000 VNĐ","150,000 VNĐ"];
-
-let shaking=false, finished=false, audioUnlocked=false;
-let lastShakeTime=0;
-
-const shakeSound = document.getElementById("shake-sound");
-const openSound = document.getElementById("open-sound");
-const packet = document.getElementById("red-packet");
-const moneyFly = document.getElementById("money-fly");
-
-/* ===== AUDIO UNLOCK ===== */
-function unlockAudio(audio){
-    audio.muted=true;
-    audio.play().then(()=>{
-        audio.pause();
-        audio.currentTime=0;
-        audio.muted=false;
-        audioUnlocked=true;
-    }).catch(()=>{});
+function go() {
+    const name = document.getElementById("username").value.trim();
+    if (!name) {
+        alert("Vui lòng nhập tên");
+        return;
+    }
+    sessionStorage.setItem("username", name);
+    location.href = "shake.html";
 }
-
-/* ===== START SHAKE ===== */
-function startShake(){
-    if(shaking || finished) return;
-    shaking=true;
-
-    moneyFly.className="";
-    packet.style.animation="shake 0.25s infinite";
-
-    if(audioUnlocked){
-        shakeSound.loop=true;
-        shakeSound.currentTime=0;
-        shakeSound.play().catch(()=>{});
-    }
-
-    setTimeout(openLixi, 2500);
-}
-
-/* ===== OPEN ===== */
-function openLixi(){
-    if(finished) return;
-    finished=true;
-    shaking=false;
-
-    packet.style.animation="";
-    shakeSound.pause();
-    shakeSound.currentTime=0;
-
-    if(audioUnlocked){
-        openSound.play().catch(()=>{});
-        setTimeout(()=>openSound.pause(),1000);
-    }
-
-    moneyFly.classList.add("money-animate");
-    launchConfetti();
-
-    setTimeout(()=>{
-        document.getElementById("shake-screen").style.display="none";
-        document.getElementById("msg").innerText =
-            messages[Math.floor(Math.random()*messages.length)];
-        document.getElementById("money").innerText =
-            "💰 "+amounts[Math.floor(Math.random()*amounts.length)];
-        document.getElementById("result").style.display="block";
-    },900);
-}
-
-/* ===== CONFETTI ===== */
-function launchConfetti(){
-    for(let i=0;i<80;i++){
-        const c=document.createElement("div");
-        c.className="confetti";
-        c.style.left=Math.random()*100+"vw";
-        c.style.background=`hsl(${Math.random()*360},100%,50%)`;
-        c.style.animationDuration=(2+Math.random()*2)+"s";
-        document.body.appendChild(c);
-        setTimeout(()=>c.remove(),4000);
-    }
-}
-
-/* ===== INPUT FLOW ===== */
-document.getElementById("start").onclick=()=>{
-    if(!username.value.trim()) return alert("Nhập tên!");
-    document.getElementById("input-screen").style.display="none";
-    document.getElementById("shake-screen").style.display="flex";
-};
-
-/* ===== BUTTON ===== */
-document.getElementById("shake-btn").onclick=async()=>{
-    if(typeof DeviceMotionEvent?.requestPermission==="function"){
-        const p=await DeviceMotionEvent.requestPermission();
-        if(p!=="granted") return;
-    }
-    unlockAudio(shakeSound);
-    unlockAudio(openSound);
-    startShake();
-};
-
-/* ===== DEVICE SHAKE ===== */
-window.addEventListener("devicemotion",e=>{
-    if(shaking||finished) return;
-    const now=Date.now();
-    if(now-lastShakeTime<500) return;
-
-    const a=e.accelerationIncludingGravity;
-    if(!a) return;
-    const force=Math.abs(a.x)+Math.abs(a.y)+Math.abs(a.z);
-    if(force>22){
-        lastShakeTime=now;
-        startShake();
-    }
-});
 </script>
 
 </body>
