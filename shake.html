@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lắc mở lì xì</title>
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background: #ffecd2;
+    text-align: center;
+    padding: 20px;
+}
+#red-packet {
+    width: 160px;
+    margin: 40px auto;
+}
+@keyframes shake {
+    0%,100% { transform: translateX(-6px); }
+    50% { transform: translateX(6px); }
+}
+#result {
+    display: none;
+    margin-top: 20px;
+}
+.amount {
+    font-size: 22px;
+    color: #d6336c;
+    font-weight: bold;
+}
+</style>
+</head>
+<body>
+
+<h2>📱 Lắc điện thoại để mở lì xì</h2>
+
+<img id="red-packet" src="./baolixi.jpg">
+
+<div id="result">
+    <p id="msg"></p>
+    <p class="amount" id="money"></p>
+</div>
+
+<script>
+const name = sessionStorage.getItem("playerName") || "Bạn";
+const amounts = ["20,000 VNĐ","50,000 VNĐ","100,000 VNĐ","150,000 VNĐ"];
+const messages = [
+    `Chúc ${name} năm mới phát tài!`,
+    `Chúc ${name} may mắn cả năm!`,
+    `Tiền vô như nước nhé ${name}!`
+];
+
+let shakeEnergy = 0;
+let lastAcc = {x:0,y:0,z:0};
+let startTime = null;
+let done = false;
+
+const WINDOW = 2500;
+const ENERGY = 130;
+
+if (typeof DeviceMotionEvent?.requestPermission === "function") {
+    DeviceMotionEvent.requestPermission().then(p => {
+        if (p === "granted") start();
+    });
+} else {
+    start();
+}
+
+function start() {
+    window.addEventListener("devicemotion", e => {
+        if (done) return;
+
+        const a = e.accelerationIncludingGravity;
+        if (!a) return;
+
+        const dx = Math.abs(a.x - lastAcc.x);
+        const dy = Math.abs(a.y - lastAcc.y);
+        const dz = Math.abs(a.z - lastAcc.z);
+        lastAcc = {x:a.x,y:a.y,z:a.z};
+
+        if (dx + dy + dz < 3) return;
+
+        if (!startTime) {
+            startTime = Date.now();
+            shakeEnergy = 0;
+        }
+
+        shakeEnergy += dx + dy + dz;
+        document.getElementById("red-packet").style.animation = "shake 0.15s";
+
+        if (Date.now() - startTime >= WINDOW) finish();
+    });
+}
+
+function finish() {
+    done = true;
+    document.getElementById("red-packet").style.animation = "shake 0.4s infinite";
+
+    setTimeout(() => {
+        document.getElementById("red-packet").style.display = "none";
+        document.getElementById("msg").innerText =
+            messages[Math.floor(Math.random()*messages.length)];
+        document.getElementById("money").innerText =
+            "💰 " + amounts[Math.floor(Math.random()*amounts.length)];
+        document.getElementById("result").style.display = "block";
+    }, 800);
+}
+</script>
+
+</body>
+</html>
