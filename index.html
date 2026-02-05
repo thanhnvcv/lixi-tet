@@ -125,6 +125,8 @@
         <p class="amount"></p>
     </div>
 
+    <button id="enable">Bật lắc</button>
+
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         $(document).ready(function() {
@@ -226,6 +228,17 @@
                
             });
         }
+        });
+
+        document.getElementById("enable").addEventListener("click", async () => {
+          if (typeof DeviceMotionEvent.requestPermission === "function") {
+            const permission = await DeviceMotionEvent.requestPermission();
+            if (permission === "granted") {
+              startShakeDetect();
+            }
+          } else {
+            startShakeDetect();
+          }
         });
     </script>
 </body>
