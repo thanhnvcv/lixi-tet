@@ -133,10 +133,25 @@ html, body {
 const name = sessionStorage.getItem("username");
 if (!name) location.href = "index.html";
 
-const messages = [
-    `Chúc ${name} năm mới phát tài!`,
-    `Lộc xuân đầy túi, ${name}!`
-];
+const messageMap = {
+    kid: [
+        `Chúc ${name} ngoan ngoãn, học giỏi, hay ăn chóng lớn 🎈`,
+        `${name} nhận lì xì rồi nha, mau lớn khỏe mạnh nhé 🧸`,
+        `Chúc ${name} luôn vui vẻ, cười tươi mỗi ngày 🎉`
+    ],
+    youth: [
+        `Chúc ${name} năm mới bùng nổ năng lượng 🔥`,
+        `Tiền vô như nước, tình duyên như ý nhé ${name} 💖`,
+        `${name} năm nay học tập – công việc đều lên 🚀`
+    ],
+    adult: [
+        `Chúc ${name} sức khỏe dồi dào, gia đình bình an 🍀`,
+        `Năm mới vạn sự như ý, phát tài phát lộc ${name} 💰`,
+        `Chúc ${name} làm ăn thuận lợi, an khang thịnh vượng 🧧`
+    ]
+};
+
+const messages = messageMap[userType];
 const amounts = ["20,000 VNĐ","50,000 VNĐ","100,000 VNĐ"];
 
 /* ===== STATE ===== */
