@@ -113,18 +113,16 @@ $(document).ready(function () {
         return;
     }
 
-    // 🔴 QUAN TRỌNG: chặn iOS Shake-to-Undo
-    $("#user-name").blur().prop("disabled", true);
+    // 🔥 LƯU TÊN TRƯỚC
+    window.playerName = name;
 
-    // 1️⃣ Ẩn màn hình nhập
-    $("#user-input").fadeOut(300);
+    // 🔥 XÓA INPUT KHỎI DOM → iOS mất undo stack
+    $("#user-input").remove();
 
-    // 2️⃣ Hiện bao lì xì
-    setTimeout(() => {
-        $("#red-packet").fadeIn(300);
-    }, 300);
+    // Hiện bao lì xì
+    $("#red-packet").fadeIn(300);
 
-    // 3️⃣ Chỉ lúc này mới cho phép lắc
+    // Bật lắc SAU KHI input đã bị remove
     shakeEnabled = true;
     await enableShake();
 });
