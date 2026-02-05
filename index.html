@@ -3,217 +3,56 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Lắc Lì Xì Tết</title>
-
+<title>Nhập tên nhận lì xì</title>
 <style>
 body {
     font-family: Arial, sans-serif;
-    background-color: #ffecd2;
+    background: #ffecd2;
     text-align: center;
-    padding: 20px;
-}
-h1 { color: #d6336c; }
-
-#user-input {
-    margin: 20px auto;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 10px;
+    padding: 40px;
 }
 input {
     padding: 12px;
-    font-size: 1rem;
-    width: 250px;
-    text-align: center;
+    font-size: 16px;
+    width: 240px;
+    border-radius: 20px;
     border: 2px solid #d6336c;
-    border-radius: 25px;
+    text-align: center;
 }
 button {
+    margin-top: 15px;
     padding: 12px 20px;
-    font-size: 1rem;
-    background: linear-gradient(45deg, #ff5733, #d6336c);
-    color: white;
+    border-radius: 20px;
     border: none;
-    cursor: pointer;
-    border-radius: 25px;
+    background: linear-gradient(45deg,#ff5733,#d6336c);
+    color: white;
+    font-size: 16px;
 }
-
-#red-packet {
-    display: none;
-    width: 150px;
-    margin: 30px auto;
-}
-
-@keyframes shake {
-    0%,100% { transform: translateX(-6px); }
-    50% { transform: translateX(6px); }
-}
-
-#result { display: none; margin-top: 20px; }
-.message { font-size: 1.2rem; color: #4CAF50; }
-.amount { font-size: 1.5rem; font-weight: bold; color: #d6336c; }
 </style>
 </head>
-
 <body>
 
-<h1>Lắc Lì Xì Tết</h1>
-<p>Nhập tên của bạn và lắc điện thoại thật mạnh 🎉</p>
+<h2>🎉 Nhập tên để nhận lì xì</h2>
 
-<div id="user-input">
-    <input type="text" id="user-name" placeholder="Nhập tên của bạn">
-    <button id="start-btn">Bắt đầu</button>
-</div>
+<input id="user-name" placeholder="Tên của bạn">
+<br>
+<button onclick="start()">Bắt đầu</button>
 
-<div id="red-packet">
-    <img src="./baolixi.jpg" width="150">
-</div>
-
-<div id="result">
-    <p class="message"></p>
-    <p class="amount"></p>
-</div>
-
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
-$(document).ready(function () {
-
-    /* ================= DATA ================= */
-    const messages = [
-        "Chúc {name} năm mới phát tài phát lộc!",
-        "{name} năm mới nhiều sức khỏe và may mắn!",
-        "{name} tiền vào như nước, lộc đầy tay!",
-        "Chúc {name} một năm mới rực rỡ!"
-    ];
-    const amounts = ["20,000 VNĐ", "50,000 VNĐ", "100,000 VNĐ", "150,000 VNĐ"];
-
-    let hasSpun = localStorage.getItem("hasSpun") === "true";
-
-    /* ================= SHAKE CONFIG ================= */
-    let shakeEnabled = false;
-    let shakeStartTime = null;
-    let shakeEnergy = 0;
-    let lastAcc = { x: 0, y: 0, z: 0 };
-    let axisChanges = 0;
-    let lastAxis = null;
-    let lastResultTime = 0;
-
-    const SHAKE_WINDOW = 2500;      // 2.5s
-    const ENERGY_THRESHOLD = 130;  // càng cao càng khó
-    const AXIS_THRESHOLD = 6;      // đổi trục
-    const MIN_DELTA = 3;           // lọc rung giả
-    const COOLDOWN = 5000;         // chống spam
-
-    /* ================= START ================= */
- $("#start-btn").click(async function () {
-    let name = $("#user-name").val().trim();
+function start() {
+    const name = document.getElementById("user-name").value.trim();
     if (!name) {
         alert("Vui lòng nhập tên!");
         return;
     }
 
-    // 🔥 LƯU TÊN TRƯỚC
-    window.playerName = name;
+    // Lưu tên để trang sau dùng
+    sessionStorage.setItem("playerName", name);
 
-    // 🔥 XÓA INPUT KHỎI DOM → iOS mất undo stack
-    $("#user-input").remove();
-
-    // Hiện bao lì xì
-    $("#red-packet").fadeIn(300);
-
-    // Bật lắc SAU KHI input đã bị remove
-    shakeEnabled = true;
-    await enableShake();
-});
-
-    /* ================= SHAKE PERMISSION ================= */
-    async function enableShake() {
-        if (typeof DeviceMotionEvent?.requestPermission === "function") {
-            const p = await DeviceMotionEvent.requestPermission();
-            if (p !== "granted") return alert("Cần quyền cảm biến");
-        }
-        window.addEventListener("devicemotion", handleShake, false);
-    }
-
-    /* ================= SHAKE CORE ================= */
-    function handleShake(event) {
-        if (!shakeEnabled || hasSpun) return;
-        if (Date.now() - lastResultTime < COOLDOWN) return;
-
-        const acc = event.accelerationIncludingGravity;
-        if (!acc) return;
-
-        const dx = Math.abs((acc.x || 0) - lastAcc.x);
-        const dy = Math.abs((acc.y || 0) - lastAcc.y);
-        const dz = Math.abs((acc.z || 0) - lastAcc.z);
-        lastAcc = { x: acc.x || 0, y: acc.y || 0, z: acc.z || 0 };
-
-        if (dx + dy + dz < MIN_DELTA) return; // chống fake rung
-
-        const max = Math.max(dx, dy, dz);
-        let axis = max === dx ? "x" : max === dy ? "y" : "z";
-        if (lastAxis && axis !== lastAxis) axisChanges++;
-        lastAxis = axis;
-
-        if (!shakeStartTime) {
-            shakeStartTime = Date.now();
-            shakeEnergy = 0;
-            axisChanges = 0;
-        }
-
-        shakeEnergy += dx + dy + dz;
-        $("#red-packet").css("animation", "shake 0.15s");
-
-        if (Date.now() - shakeStartTime >= SHAKE_WINDOW) evaluateShake();
-    }
-
-    /* ================= EVALUATE ================= */
-    function evaluateShake() {
-        if (shakeEnergy >= ENERGY_THRESHOLD && axisChanges >= AXIS_THRESHOLD) {
-            onShakeSuccess();
-        }
-        resetShake();
-    }
-
-    function resetShake() {
-        shakeStartTime = null;
-        shakeEnergy = 0;
-        axisChanges = 0;
-        lastAxis = null;
-    }
-
-    /* ================= SUCCESS ================= */
-    function onShakeSuccess() {
-        hasSpun = true;
-        localStorage.setItem("hasSpun", "true");
-        lastResultTime = Date.now();
-
-        $("#red-packet").css("animation", "shake 0.4s infinite");
-
-        setTimeout(() => {
-            $("#red-packet").hide();
-            showResult();
-        }, 900);
-    }
-
-    function showResult() {
-        let name = $("#user-name").val();
-        let msg = messages[Math.floor(Math.random() * messages.length)]
-                    .replace("{name}", name);
-        let money = amounts[Math.floor(Math.random() * amounts.length)];
-
-        $(".message").text(msg);
-        $(".amount").text("💰 " + money);
-        $("#result").fadeIn();
-    }
-	
-	document.addEventListener("touchstart", () => {
-		if (document.activeElement?.tagName === "INPUT") {
-			document.activeElement.blur();
-		}
-	}, { passive: true });
-});
+    // CHUYỂN SANG DOCUMENT KHÁC → iOS reset undo stack
+    location.href = "shake.html";
+}
 </script>
+
 </body>
 </html>
