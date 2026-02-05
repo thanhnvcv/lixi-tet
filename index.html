@@ -3,54 +3,59 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Nhập tên</title>
+<title>Lắc lì xì</title>
+
 <style>
 body {
-    margin: 0;
-    height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background: #ffecd2;
     font-family: Arial;
-}
-.box {
+    background: #ffecd2;
     text-align: center;
+    padding-top: 20vh;
 }
+
 input {
-    padding: 14px;
-    font-size: 18px;
-    border-radius: 25px;
+    padding: 12px;
+    width: 240px;
+    font-size: 16px;
+    border-radius: 20px;
     border: 2px solid #d6336c;
     text-align: center;
 }
-button {
-    margin-top: 15px;
-    padding: 14px 30px;
-    font-size: 18px;
-    border-radius: 30px;
+
+.type-btn {
+    margin: 10px;
+    padding: 12px 22px;
+    font-size: 16px;
+    border-radius: 25px;
     border: none;
     background: linear-gradient(45deg,#ff5733,#d6336c);
-    color: #fff;
+    color: white;
 }
 </style>
 </head>
+
 <body>
 
-<div class="box">
-    <input id="username" placeholder="Nhập tên của bạn">
-    <br>
-    <button onclick="go()">Bắt đầu</button>
-</div>
+<h2>🎉 Nhập tên của bạn</h2>
+<input id="name" placeholder="Tên của bạn">
+
+<h3>Bạn thuộc nhóm nào?</h3>
+
+<button class="type-btn" onclick="start('kid')">🧒 Trẻ em</button>
+<button class="type-btn" onclick="start('youth')">🧑 Bạn trẻ</button>
+<button class="type-btn" onclick="start('adult')">👨‍👩‍👧 Người lớn</button>
 
 <script>
-function go() {
-    const name = document.getElementById("username").value.trim();
+function start(type) {
+    const name = document.getElementById("name").value.trim();
     if (!name) {
-        alert("Vui lòng nhập tên");
+        alert("Vui lòng nhập tên!");
         return;
     }
+
     sessionStorage.setItem("username", name);
+    sessionStorage.setItem("userType", type);
+
     location.href = "shake.html";
 }
 </script>
