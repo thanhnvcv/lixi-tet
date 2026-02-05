@@ -16,6 +16,7 @@ html, body {
     font-family: Arial, sans-serif;
 }
 
+/* màn lắc */
 #shake-screen {
     position: fixed;
     inset: 0;
@@ -31,11 +32,28 @@ html, body {
     touch-action: none;
 }
 
+/* overlay xin quyền */
+#motion-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    color: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 999;
+    font-size: 20px;
+    text-align: center;
+    padding: 20px;
+}
+
+/* animation khi mở */
 @keyframes shake {
     0%,100% { transform: translateX(-12px); }
     50% { transform: translateX(12px); }
 }
 
+/* kết quả */
 #result {
     display: none;
     position: fixed;
@@ -55,6 +73,11 @@ html, body {
 
 <body>
 
+<!-- overlay bắt buộc tap -->
+<div id="motion-overlay">
+    👆 Chạm vào màn hình để bắt đầu lắc
+</div>
+
 <div id="shake-screen">
     <img id="red-packet" src="./baolixi.jpg" alt="Lì xì">
 </div>
@@ -71,7 +94,6 @@ if (!sessionStorage.getItem("fromIndex")) {
 }
 sessionStorage.removeItem("fromIndex");
 
-// nếu reload bằng swipe/back cache (iOS)
 window.addEventListener("pageshow", e => {
     if (e.persisted) location.replace("index.html");
 });
@@ -97,24 +119,31 @@ let startTime = null;
 let finished = false;
 
 const packet = document.getElementById("red-packet");
+const overlay = document.getElementById("motion-overlay");
 
-function initMotion() {
+/* ================= XIN QUYỀN CẢM BIẾN ================= */
+overlay.addEventListener("click", async () => {
+    overlay.style.display = "none";
+
     if (typeof DeviceMotionEvent?.requestPermission === "function") {
-        DeviceMotionEvent.requestPermission().then(p => {
-            if (p === "granted") startListening();
-        });
-    } else {
-        startListening();
+        const permission = await DeviceMotionEvent.requestPermission();
+        if (permission !== "granted") {
+            alert("Vui lòng cho phép quyền chuyển động để lắc lì xì");
+            location.replace("index.html");
+            return;
+        }
     }
-}
+
+    startListening();
+});
+/* ====================================================== */
 
 function startListening() {
+    // bỏ rung nền ban đầu
     setTimeout(() => {
         window.addEventListener("devicemotion", onMotion, false);
-    }, 1000); // bỏ rung nền ban đầu
+    }, 800);
 }
-
-initMotion();
 
 function onMotion(e) {
     if (finished) return;
@@ -135,7 +164,7 @@ function onMotion(e) {
     const force = dx + dy + dz;
     if (force < MIN_FORCE) return;
 
-    // chưa kích hoạt
+    // chưa kích hoạt → cần cú lắc mạnh đầu tiên
     if (!armed) {
         if (force >= ARM_FORCE) {
             armed = true;
