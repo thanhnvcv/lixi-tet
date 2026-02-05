@@ -3,20 +3,32 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Lắc mở lì xì</title>
+<title>Lắc lì xì</title>
 
 <style>
 html, body {
     margin: 0;
-    padding: 0;
     width: 100%;
     height: 100%;
-    overflow: hidden;
     background: #ffecd2;
-    font-family: Arial, sans-serif;
+    overflow: hidden;
+    font-family: Arial;
 }
 
-/* ===== SHAKE SCREEN ===== */
+/* UNLOCK */
+#unlock {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    color: #fff;
+    z-index: 10;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 20px;
+}
+
+/* SHAKE */
 #shake-screen {
     position: fixed;
     inset: 0;
@@ -26,56 +38,33 @@ html, body {
     align-items: center;
 }
 
-#red-packet {
-    width: 90vw;
+#packet {
+    width: 85vw;
     max-width: 420px;
-    user-select: none;
-    touch-action: none;
 }
 
-#shake-hint {
+#hint {
     margin-top: 20px;
-    font-size: 16px;
     color: #d6336c;
 }
 
-/* ===== BUTTON ===== */
-#start-wrap {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 10;
-}
-
-#start-shake {
-    padding: 16px 30px;
-    font-size: 20px;
+#btn {
+    margin-top: 15px;
+    padding: 14px 30px;
+    font-size: 18px;
     border-radius: 30px;
     border: none;
     background: linear-gradient(45deg,#ff5733,#d6336c);
     color: #fff;
 }
 
-/* ===== SHAKE ANIMATION ===== */
-@keyframes shake {
-    0% { transform: translate(-18px,0); }
-    25% { transform: translate(18px,0); }
-    50% { transform: translate(-18px,0); }
-    75% { transform: translate(18px,0); }
-    100% { transform: translate(0,0); }
-}
-
-/* ===== RESULT ===== */
+/* RESULT */
 #result {
     display: none;
     position: fixed;
     inset: 0;
-    background: #ffecd2;
     text-align: center;
-    padding-top: 30vh;
+    padding-top: 35vh;
 }
 
 .amount {
@@ -84,139 +73,65 @@ html, body {
     color: #d6336c;
 }
 
-/* ===== CONFETTI ===== */
-.confetti {
-    position: fixed;
-    width: 10px;
-    height: 10px;
-    top: -10px;
-    animation: fall linear forwards;
-}
-
-@keyframes fall {
-    to {
-        transform: translateY(110vh) rotate(360deg);
-        opacity: 0;
-    }
+/* ANIMATION */
+@keyframes shake {
+    0% { transform: translate(-18px); }
+    50% { transform: translate(18px); }
+    100% { transform: translate(0); }
 }
 </style>
 </head>
 
 <body>
 
-<!-- BUTTON -->
-<div id="start-wrap">
-    <button id="start-shake">🧧 Lắc lì xì</button>
-</div>
+<div id="unlock">👆 Chạm màn hình để bắt đầu</div>
 
-<!-- SHAKE -->
 <div id="shake-screen">
-    <img id="red-packet" src="./baolixi.jpg">
-    <div id="shake-hint">📱 Lắc điện thoại hoặc nhấn <b>Lắc lì xì</b></div>
+    <img id="packet" src="./baolixi.jpg">
+    <div id="hint">📱 Lắc điện thoại hoặc nhấn Lắc lì xì</div>
+    <button id="btn">🧧 Lắc lì xì</button>
 </div>
 
-<!-- RESULT -->
 <div id="result">
     <p id="msg"></p>
     <p class="amount" id="money"></p>
 </div>
 
-<!-- AUDIO -->
-<audio id="shake-sound" src="./shake.mp3" preload="auto"></audio>
-<audio id="open-sound" src="./open.mp3" preload="auto"></audio>
+<audio id="shakeSound" src="./shake.mp3" preload="auto"></audio>
+<audio id="openSound" src="./open.mp3" preload="auto"></audio>
 
 <script>
-/* ===== DATA ===== */
-const amounts = ["20,000 VNĐ","50,000 VNĐ","100,000 VNĐ","150,000 VNĐ"];
-const messages = ["Chúc năm mới phát tài!", "Tiền vô như nước!", "Lộc xuân đầy túi!"];
+const name = sessionStorage.getItem("username");
+if (!name) location.href = "index.html";
 
-/* ===== STATE ===== */
+const messages = [
+    `Chúc ${name} năm mới phát tài!`,
+    `Lộc xuân đầy túi, ${name}!`
+];
+const amounts = ["20,000 VNĐ","50,000 VNĐ","100,000 VNĐ"];
+
+let unlocked = false;
 let shaking = false;
 let finished = false;
-let canPlaySound = false;
 
-/* ===== ELEMENT ===== */
-const packet = document.getElementById("red-packet");
-const startBtn = document.getElementById("start-shake");
-const startWrap = document.getElementById("start-wrap");
-const shakeSound = document.getElementById("shake-sound");
-const openSound = document.getElementById("open-sound");
+const packet = document.getElementById("packet");
+const shakeSound = document.getElementById("shakeSound");
+const openSound = document.getElementById("openSound");
 
-/* ===== UNLOCK AUDIO ===== */
+/* AUDIO UNLOCK */
 function unlockAudio(audio) {
     audio.muted = true;
     audio.play().then(() => {
         audio.pause();
         audio.currentTime = 0;
         audio.muted = false;
-        canPlaySound = true;
     }).catch(()=>{});
 }
 
-/* ===== START SHAKE ===== */
-function startShake() {
-    if (shaking || finished) return;
-
-    shaking = true;
-
-    packet.style.animation = "shake 0.25s infinite";
-
-    if (canPlaySound) {
-        shakeSound.loop = true;
-        shakeSound.volume = 0.6;
-        shakeSound.play().catch(()=>{});
-    }
-
-    setTimeout(openLixi, 2500);
-}
-
-/* ===== OPEN LIXI ===== */
-function openLixi() {
-    if (finished) return;
-    finished = true;
-    shaking = false;
-
-    packet.style.animation = "";
-    shakeSound.pause();
-    shakeSound.currentTime = 0;
-
-    if (canPlaySound) {
-        openSound.play().catch(()=>{});
-        setTimeout(() => {
-            openSound.pause();
-            openSound.currentTime = 0;
-        }, 1000);
-    }
-
-    launchConfetti();
-
-    setTimeout(() => {
-        document.getElementById("shake-screen").style.display = "none";
-        document.getElementById("msg").innerText =
-            messages[Math.floor(Math.random() * messages.length)];
-        document.getElementById("money").innerText =
-            "💰 " + amounts[Math.floor(Math.random() * amounts.length)];
-        document.getElementById("result").style.display = "block";
-    }, 400);
-}
-
-/* ===== CONFETTI ===== */
-function launchConfetti() {
-    for (let i = 0; i < 80; i++) {
-        const c = document.createElement("div");
-        c.className = "confetti";
-        c.style.left = Math.random() * 100 + "vw";
-        c.style.background =
-            `hsl(${Math.random() * 360},100%,50%)`;
-        c.style.animationDuration = (2 + Math.random() * 2) + "s";
-        document.body.appendChild(c);
-        setTimeout(() => c.remove(), 4000);
-    }
-}
-
-/* ===== BUTTON CLICK ===== */
-startBtn.addEventListener("click", async () => {
-    startWrap.style.display = "none";
+/* UNLOCK SCREEN */
+document.getElementById("unlock").addEventListener("touchstart", async () => {
+    if (unlocked) return;
+    unlocked = true;
 
     if (typeof DeviceMotionEvent?.requestPermission === "function") {
         const p = await DeviceMotionEvent.requestPermission();
@@ -226,16 +141,54 @@ startBtn.addEventListener("click", async () => {
     unlockAudio(shakeSound);
     unlockAudio(openSound);
 
-    startShake();
+    document.getElementById("unlock").style.display = "none";
 });
 
-/* ===== DEVICE SHAKE ===== */
+/* START SHAKE */
+function startShake() {
+    if (!unlocked || shaking || finished) return;
+
+    shaking = true;
+    packet.style.animation = "shake 0.25s infinite";
+
+    shakeSound.loop = true;
+    shakeSound.currentTime = 0;
+    shakeSound.play().catch(()=>{});
+
+    setTimeout(openLixi, 2500);
+}
+
+/* OPEN */
+function openLixi() {
+    finished = true;
+    shaking = false;
+
+    packet.style.animation = "";
+    shakeSound.pause();
+    shakeSound.currentTime = 0;
+
+    openSound.play().catch(()=>{});
+    setTimeout(()=>openSound.pause(),1000);
+
+    document.getElementById("shake-screen").style.display = "none";
+    document.getElementById("msg").innerText =
+        messages[Math.floor(Math.random()*messages.length)];
+    document.getElementById("money").innerText =
+        "💰 " + amounts[Math.floor(Math.random()*amounts.length)];
+    document.getElementById("result").style.display = "block";
+}
+
+/* BUTTON */
+document.getElementById("btn").onclick = startShake;
+
+/* DEVICE SHAKE */
 window.addEventListener("devicemotion", e => {
-    if (shaking || finished) return;
-    const acc = e.accelerationIncludingGravity;
-    if (!acc) return;
-    const force = Math.abs(acc.x) + Math.abs(acc.y) + Math.abs(acc.z);
-    if (force > 20) startShake();
+    if (!unlocked || shaking || finished) return;
+    const a = e.accelerationIncludingGravity;
+    if (!a) return;
+
+    const force = Math.abs(a.x) + Math.abs(a.y) + Math.abs(a.z);
+    if (force > 22) startShake();
 });
 </script>
 
