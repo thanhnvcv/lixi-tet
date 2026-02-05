@@ -240,6 +240,32 @@
             startShakeDetect();
           }
         });
+        let lastX = 0, lastY = 0, lastZ = 0;
+let shakeThreshold = 15; // chỉnh độ nhạy
+
+function startShakeDetect() {
+  window.addEventListener("devicemotion", (event) => {
+    const acc = event.accelerationIncludingGravity;
+    if (!acc) return;
+
+    let deltaX = Math.abs(acc.x - lastX);
+    let deltaY = Math.abs(acc.y - lastY);
+    let deltaZ = Math.abs(acc.z - lastZ);
+
+    if (deltaX + deltaY + deltaZ > shakeThreshold) {
+      console.log("📱 ĐÃ LẮC!");
+      onShake();
+    }
+
+    lastX = acc.x;
+    lastY = acc.y;
+    lastZ = acc.z;
+  });
+}
+
+function onShake() {
+  alert("Bạn vừa lắc điện thoại!");
+}
     </script>
 </body>
 </html>
