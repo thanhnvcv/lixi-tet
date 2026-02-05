@@ -15,7 +15,7 @@ html, body {
     font-family: Arial;
 }
 
-/* UNLOCK */
+/* ===== UNLOCK ===== */
 #unlock {
     position: fixed;
     inset: 0;
@@ -26,9 +26,10 @@ html, body {
     justify-content: center;
     align-items: center;
     font-size: 20px;
+    text-align: center;
 }
 
-/* SHAKE */
+/* ===== SHAKE ===== */
 #shake-screen {
     position: fixed;
     inset: 0;
@@ -41,6 +42,13 @@ html, body {
 #packet {
     width: 85vw;
     max-width: 420px;
+}
+
+#money {
+    position: absolute;
+    width: 120px;
+    opacity: 0;
+    transform: translateY(40px) scale(0.6);
 }
 
 #hint {
@@ -58,7 +66,7 @@ html, body {
     color: #fff;
 }
 
-/* RESULT */
+/* ===== RESULT ===== */
 #result {
     display: none;
     position: fixed;
@@ -73,30 +81,47 @@ html, body {
     color: #d6336c;
 }
 
-/* ANIMATION */
+/* ===== ANIMATION ===== */
 @keyframes shake {
     0% { transform: translate(-18px); }
     50% { transform: translate(18px); }
     100% { transform: translate(0); }
+}
+
+@keyframes moneyOut {
+    to {
+        opacity: 1;
+        transform: translateY(-150px) scale(1.1);
+    }
+}
+
+.money-out {
+    animation: moneyOut 0.8s ease-out forwards;
 }
 </style>
 </head>
 
 <body>
 
-<div id="unlock">👆 Chạm màn hình để bắt đầu</div>
+<div id="unlock">
+    👆 Chạm màn hình để bắt đầu<br>
+    📱 Sau đó lắc điện thoại
+</div>
 
 <div id="shake-screen">
     <img id="packet" src="./baolixi.jpg">
+    <img id="money" src="./money.png">
     <div id="hint">📱 Lắc điện thoại hoặc nhấn Lắc lì xì</div>
     <button id="btn">🧧 Lắc lì xì</button>
 </div>
 
 <div id="result">
     <p id="msg"></p>
-    <p class="amount" id="money"></p>
+    <p class="amount" id="amount"></p>
 </div>
 
+<!-- AUDIO -->
+<audio id="bgm" src="./bgm.mp3" loop preload="auto"></audio>
 <audio id="shakeSound" src="./shake.mp3" preload="auto"></audio>
 <audio id="openSound" src="./open.mp3" preload="auto"></audio>
 
@@ -115,20 +140,22 @@ let shaking = false;
 let finished = false;
 
 const packet = document.getElementById("packet");
+const money = document.getElementById("money");
+const bgm = document.getElementById("bgm");
 const shakeSound = document.getElementById("shakeSound");
 const openSound = document.getElementById("openSound");
 
-/* AUDIO UNLOCK */
-function unlockAudio(audio) {
+/* ===== UNLOCK AUDIO ===== */
+function unlockAudio(audio){
     audio.muted = true;
-    audio.play().then(() => {
+    audio.play().then(()=>{
         audio.pause();
         audio.currentTime = 0;
         audio.muted = false;
     }).catch(()=>{});
 }
 
-/* UNLOCK SCREEN */
+/* ===== UNLOCK SCREEN ===== */
 document.getElementById("unlock").addEventListener("touchstart", async () => {
     if (unlocked) return;
     unlocked = true;
@@ -138,14 +165,18 @@ document.getElementById("unlock").addEventListener("touchstart", async () => {
         if (p !== "granted") return;
     }
 
+    unlockAudio(bgm);
     unlockAudio(shakeSound);
     unlockAudio(openSound);
+
+    bgm.volume = 0.4;
+    bgm.play().catch(()=>{});
 
     document.getElementById("unlock").style.display = "none";
 });
 
-/* START SHAKE */
-function startShake() {
+/* ===== START SHAKE ===== */
+function startShake(){
     if (!unlocked || shaking || finished) return;
 
     shaking = true;
@@ -158,8 +189,8 @@ function startShake() {
     setTimeout(openLixi, 2500);
 }
 
-/* OPEN */
-function openLixi() {
+/* ===== OPEN ===== */
+function openLixi(){
     finished = true;
     shaking = false;
 
@@ -170,18 +201,22 @@ function openLixi() {
     openSound.play().catch(()=>{});
     setTimeout(()=>openSound.pause(),1000);
 
-    document.getElementById("shake-screen").style.display = "none";
-    document.getElementById("msg").innerText =
-        messages[Math.floor(Math.random()*messages.length)];
-    document.getElementById("money").innerText =
-        "💰 " + amounts[Math.floor(Math.random()*amounts.length)];
-    document.getElementById("result").style.display = "block";
+    money.classList.add("money-out");
+
+    setTimeout(()=>{
+        document.getElementById("shake-screen").style.display = "none";
+        document.getElementById("msg").innerText =
+            messages[Math.floor(Math.random()*messages.length)];
+        document.getElementById("amount").innerText =
+            "💰 " + amounts[Math.floor(Math.random()*amounts.length)];
+        document.getElementById("result").style.display = "block";
+    },800);
 }
 
-/* BUTTON */
+/* ===== BUTTON ===== */
 document.getElementById("btn").onclick = startShake;
 
-/* DEVICE SHAKE */
+/* ===== DEVICE SHAKE ===== */
 window.addEventListener("devicemotion", e => {
     if (!unlocked || shaking || finished) return;
     const a = e.accelerationIncludingGravity;
