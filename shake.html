@@ -49,6 +49,7 @@ html, body {
     width: 120px;
     opacity: 0;
     transform: translateY(40px) scale(0.6);
+    pointer-events: none;
 }
 
 #hint {
@@ -83,9 +84,11 @@ html, body {
 
 /* ===== ANIMATION ===== */
 @keyframes shake {
-    0% { transform: translate(-18px); }
-    50% { transform: translate(18px); }
-    100% { transform: translate(0); }
+    0% { transform: translate(-18px, 0); }
+    25% { transform: translate(18px, 0); }
+    50% { transform: translate(-18px, 0); }
+    75% { transform: translate(18px, 0); }
+    100% { transform: translate(0, 0); }
 }
 
 @keyframes moneyOut {
@@ -111,7 +114,7 @@ html, body {
 <div id="shake-screen">
     <img id="packet" src="./baolixi.jpg">
     <img id="money" src="./money.png">
-    <div id="hint">📱 Lắc điện thoại hoặc nhấn Lắc lì xì</div>
+    <div id="hint">📱 Lắc điện thoại hoặc nhấn <b>Lắc lì xì</b></div>
     <button id="btn">🧧 Lắc lì xì</button>
 </div>
 
@@ -126,6 +129,7 @@ html, body {
 <audio id="openSound" src="./open.mp3" preload="auto"></audio>
 
 <script>
+/* ===== DATA ===== */
 const name = sessionStorage.getItem("username");
 if (!name) location.href = "index.html";
 
@@ -135,17 +139,27 @@ const messages = [
 ];
 const amounts = ["20,000 VNĐ","50,000 VNĐ","100,000 VNĐ"];
 
+/* ===== STATE ===== */
 let unlocked = false;
 let shaking = false;
 let finished = false;
 
+let lastMotionTime = 0;
+let shakeStopTimer = null;
+
+/* ===== CONFIG ===== */
+const FORCE_THRESHOLD = 16;     // ngưỡng lắc (X/Y)
+const SHAKE_STOP_DELAY = 600;  // dừng lắc 0.6s → bung
+const BUTTON_SHAKE_TIME = 3500;
+
+/* ===== ELEMENT ===== */
 const packet = document.getElementById("packet");
 const money = document.getElementById("money");
 const bgm = document.getElementById("bgm");
 const shakeSound = document.getElementById("shakeSound");
 const openSound = document.getElementById("openSound");
 
-/* ===== UNLOCK AUDIO ===== */
+/* ===== AUDIO UNLOCK ===== */
 function unlockAudio(audio){
     audio.muted = true;
     audio.play().then(()=>{
@@ -175,55 +189,90 @@ document.getElementById("unlock").addEventListener("touchstart", async () => {
     document.getElementById("unlock").style.display = "none";
 });
 
-/* ===== START SHAKE ===== */
-function startShake(){
-    if (!unlocked || shaking || finished) return;
-
+/* ===== SHAKE ANIMATION ===== */
+function startShakeAnimation() {
+    if (shaking || finished) return;
     shaking = true;
+
     packet.style.animation = "shake 0.25s infinite";
 
     shakeSound.loop = true;
     shakeSound.currentTime = 0;
     shakeSound.play().catch(()=>{});
 
-    setTimeout(openLixi, 2500);
+    if (navigator.vibrate) {
+        navigator.vibrate([80, 40, 80]);
+    }
 }
 
-/* ===== OPEN ===== */
-function openLixi(){
-    finished = true;
-    shaking = false;
-
+function stopShakeAnimation() {
     packet.style.animation = "";
     shakeSound.pause();
     shakeSound.currentTime = 0;
+    shaking = false;
+}
+
+/* ===== OPEN ===== */
+function openLixi() {
+    if (finished) return;
+    finished = true;
+
+    stopShakeAnimation();
+
+    if (navigator.vibrate) {
+        navigator.vibrate([120, 60, 120]);
+    }
 
     openSound.play().catch(()=>{});
-    setTimeout(()=>openSound.pause(),1000);
+    setTimeout(()=>openSound.pause(), 1000);
 
     money.classList.add("money-out");
 
-    setTimeout(()=>{
+    setTimeout(() => {
         document.getElementById("shake-screen").style.display = "none";
         document.getElementById("msg").innerText =
             messages[Math.floor(Math.random()*messages.length)];
         document.getElementById("amount").innerText =
             "💰 " + amounts[Math.floor(Math.random()*amounts.length)];
         document.getElementById("result").style.display = "block";
-    },800);
+    }, 800);
 }
 
-/* ===== BUTTON ===== */
-document.getElementById("btn").onclick = startShake;
+/* ===== BUTTON SHAKE ===== */
+document.getElementById("btn").onclick = () => {
+    if (!unlocked || finished) return;
 
-/* ===== DEVICE SHAKE ===== */
+    startShakeAnimation();
+
+    setTimeout(() => {
+        stopShakeAnimation();
+        openLixi();
+    }, BUTTON_SHAKE_TIME);
+};
+
+/* ===== DEVICE SHAKE (X/Y OPTIMIZED) ===== */
 window.addEventListener("devicemotion", e => {
-    if (!unlocked || shaking || finished) return;
+    if (!unlocked || finished) return;
+
     const a = e.accelerationIncludingGravity;
     if (!a) return;
 
-    const force = Math.abs(a.x) + Math.abs(a.y) + Math.abs(a.z);
-    if (force > 22) startShake();
+    // 👉 chỉ dùng X/Y (chống fake rung Z)
+    const force = Math.abs(a.x) + Math.abs(a.y);
+
+    if (force > FORCE_THRESHOLD) {
+        lastMotionTime = Date.now();
+
+        if (!shaking) {
+            startShakeAnimation();
+        }
+
+        clearTimeout(shakeStopTimer);
+        shakeStopTimer = setTimeout(() => {
+            stopShakeAnimation();
+            openLixi();
+        }, SHAKE_STOP_DELAY);
+    }
 });
 </script>
 
