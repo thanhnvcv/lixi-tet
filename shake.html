@@ -5,41 +5,63 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Lắc mở lì xì</title>
 <style>
-body {
-    font-family: Arial, sans-serif;
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
     background: #ffecd2;
-    text-align: center;
-    padding: 20px;
+    font-family: Arial, sans-serif;
 }
+
+#shake-screen {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
 #red-packet {
-    width: 160px;
-    margin: 40px auto;
+    width: 90vw;
+    max-width: 420px;
+    height: auto;
+    user-select: none;
+    touch-action: none;
 }
+
 @keyframes shake {
-    0%,100% { transform: translateX(-6px); }
-    50% { transform: translateX(6px); }
+    0%,100% { transform: translateX(-10px); }
+    50% { transform: translateX(10px); }
 }
+
 #result {
     display: none;
-    margin-top: 20px;
+    position: fixed;
+    inset: 0;
+    background: #ffecd2;
+    text-align: center;
+    padding-top: 30vh;
 }
+
 .amount {
-    font-size: 22px;
-    color: #d6336c;
+    font-size: 26px;
     font-weight: bold;
+    color: #d6336c;
 }
 </style>
 </head>
 <body>
+  <div id="shake-screen">
+    <img id="red-packet" src="./baolixi.jpg" alt="Lì xì">
+  </div>
 
-<h2>📱 Lắc điện thoại để mở lì xì</h2>
-
-<img id="red-packet" src="./baolixi.jpg">
-
-<div id="result">
+  <div id="result">
     <p id="msg"></p>
     <p class="amount" id="money"></p>
-</div>
+  </div>
+</body>
 
 <script>
 
