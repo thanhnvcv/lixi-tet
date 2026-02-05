@@ -1,300 +1,203 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lắc Lì Xì Tết</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #ffecd2;
-            text-align: center;
-            padding: 20px;
-        }
-        h1 {
-            color: #d6336c;
-            font-size: 2rem;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lắc Lì Xì Tết</title>
 
-        /* Container của input */
-        #user-input {
-            margin: 20px auto;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 10px;
-        }
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background-color: #ffecd2;
+    text-align: center;
+    padding: 20px;
+}
+h1 { color: #d6336c; }
 
-        /* Ô nhập tên */
-        input {
-            padding: 12px;
-            font-size: 1rem;
-            width: 250px;
-            text-align: center;
-            border: 2px solid #d6336c;
-            border-radius: 25px;
-            outline: none;
-            transition: 0.3s;
-            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
-        }
+#user-input {
+    margin: 20px auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+input {
+    padding: 12px;
+    font-size: 1rem;
+    width: 250px;
+    text-align: center;
+    border: 2px solid #d6336c;
+    border-radius: 25px;
+}
+button {
+    padding: 12px 20px;
+    font-size: 1rem;
+    background: linear-gradient(45deg, #ff5733, #d6336c);
+    color: white;
+    border: none;
+    cursor: pointer;
+    border-radius: 25px;
+}
 
-        /* Khi nhập vào ô input */
-        input:focus {
-            border-color: #ff5733;
-            box-shadow: 2px 2px 15px rgba(255, 87, 51, 0.3);
-        }
+#red-packet {
+    display: none;
+    width: 150px;
+    margin: 30px auto;
+}
 
-        /* Nút bắt đầu */
-        button {
-            padding: 12px 20px;
-            font-size: 1rem;
-            background: linear-gradient(45deg, #ff5733, #d6336c);
-            color: white;
-            border: none;
-            cursor: pointer;
-            border-radius: 25px;
-            transition: 0.3s;
-        }
+@keyframes shake {
+    0%,100% { transform: translateX(-6px); }
+    50% { transform: translateX(6px); }
+}
 
-        /* Hiệu ứng hover cho nút */
-        button:hover {
-            background: linear-gradient(45deg, #d6336c, #ff5733);
-            box-shadow: 2px 2px 15px rgba(255, 87, 51, 0.5);
-        }
-
-        #red-packet {
-            display: none;
-            width: 150px;
-            margin: 30px auto;
-            cursor: pointer;
-        }
-
-        #red-packet img {
-            max-width: 100%;
-            height: auto;
-            border-radius: 10px;
-        }
-
-        @keyframes shake {
-            0%, 100% { transform: translateX(-5px); }
-            50% { transform: translateX(5px); }
-        }
-
-        #result {
-            display: none;
-            margin-top: 20px;
-        }
-
-        .message {
-            font-size: 1.2rem;
-            color: #4CAF50;
-        }
-
-        .amount {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: #d6336c;
-        }
-        .img-after-lac {
-            max-width: 100%;
-            height: auto;
-        }
-    </style>
+#result { display: none; margin-top: 20px; }
+.message { font-size: 1.2rem; color: #4CAF50; }
+.amount { font-size: 1.5rem; font-weight: bold; color: #d6336c; }
+</style>
 </head>
+
 <body>
-    <h1>Lắc Lì Xì Tết</h1>
-    <p>Nhập tên của bạn để nhận lì xì may mắn!</p>
-    
-    <!-- Ô nhập tên đẹp hơn -->
-    <div id="user-input">
-        <input type="text" id="user-name" placeholder="Nhập tên của bạn...">
-        <button id="start-btn">Bắt đầu</button>
-    </div>
-<p id="status">Chưa lắc</p>
-    <!-- Hình bao lì xì -->
-    <div id="red-packet">
-        <img src="./baolixi.jpg" alt="Bao lì xì">
-    </div>
-    <div id="after-lac">
-        <img class="img-after-lac" src="" alt="">
-    </div>
 
-    <!-- Kết quả lì xì -->
-    <div id="result">
-        <p class="message"></p>
-        <p class="amount"></p>
-    </div>
+<h1>Lắc Lì Xì Tết</h1>
+<p>Nhập tên của bạn và lắc điện thoại thật mạnh 🎉</p>
 
-    <button id="enable">Bật lắc</button>
+<div id="user-input">
+    <input type="text" id="user-name" placeholder="Nhập tên của bạn">
+    <button id="start-btn">Bắt đầu</button>
+</div>
 
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script>
-        $(document).ready(function() {
-            var ipIntenet = "";
-            $.getJSON("https://api64.ipify.org?format=json", function(data) {
-                ipIntenet = data.ip;
-            });
+<div id="red-packet">
+    <img src="./baolixi.jpg" width="150">
+</div>
 
-            const messages = [
-                "Chúc {name} năm mới vui vẻ, phát tài phát lộc!",
-                "Năm mới hạnh phúc, {name} gặp nhiều may mắn!",
-                "{name}, chúc bạn công việc thuận lợi, tiền vào như nước!",
-                "Mạnh khỏe, bình an và thật nhiều niềm vui nhé, {name}!",
-                "{name} nhận lì xì xong nhớ chia sẻ niềm vui nhé!",
-                "Tết này, chúc {name} hạnh phúc và thành công hơn năm trước!",
-                "{name}, hãy tận hưởng một năm mới tràn đầy năng lượng!"
-            ];
-            const amounts = [
-                "20,000 VNĐ",
-                "50,000 VNĐ",
-                "70,000 VNĐ",
-                "100,000 VNĐ",
-                "150,000 VNĐ"
-            ];
-            const images = [
-                "./chung-nhan.png"
-            ];
+<div id="result">
+    <p class="message"></p>
+    <p class="amount"></p>
+</div>
 
-            let hasSpun = localStorage.getItem("hasSpun") === "true";
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+$(document).ready(function () {
 
-            if (hasSpun) {
-                console.log("No No No, Bạn đã lắc lì xì trước đó rồi 😜.");
-                $("#red-packet").css("animation", "none").off("click");
-            }
+    /* ================= DATA ================= */
+    const messages = [
+        "Chúc {name} năm mới phát tài phát lộc!",
+        "{name} năm mới nhiều sức khỏe và may mắn!",
+        "{name} tiền vào như nước, lộc đầy tay!",
+        "Chúc {name} một năm mới rực rỡ!"
+    ];
+    const amounts = ["20,000 VNĐ", "50,000 VNĐ", "100,000 VNĐ", "150,000 VNĐ"];
 
-            
-            $("#start-btn").click(function() {
-                let userName = $("#user-name").val().trim();
-                if (userName === "") {
-                    alert("Vui lòng nhập tên!");
-                    return;
-                }
+    let hasSpun = localStorage.getItem("hasSpun") === "true";
 
-                $("#user-input").hide(); 
-                $("#red-packet").fadeIn(); 
-            });
+    /* ================= SHAKE CONFIG ================= */
+    let shakeEnabled = false;
+    let shakeStartTime = null;
+    let shakeEnergy = 0;
+    let lastAcc = { x: 0, y: 0, z: 0 };
+    let axisChanges = 0;
+    let lastAxis = null;
+    let lastResultTime = 0;
 
-            $("#red-packet").click(function() {
+    const SHAKE_WINDOW = 2500;      // 2.5s
+    const ENERGY_THRESHOLD = 130;  // càng cao càng khó
+    const AXIS_THRESHOLD = 6;      // đổi trục
+    const MIN_DELTA = 3;           // lọc rung giả
+    const COOLDOWN = 5000;         // chống spam
 
-                if (hasSpun) {
-                    alert("No No No, Bạn đã lắc lì xì trước đó rồi 😜.");
-                    return;
-                }
+    /* ================= START ================= */
+    $("#start-btn").click(async function () {
+        let name = $("#user-name").val().trim();
+        if (!name) return alert("Vui lòng nhập tên!");
 
-                hasSpun = true;
-                localStorage.setItem("hasSpun", "true");
+        $("#user-input").hide();
+        $("#red-packet").fadeIn();
 
-                $(this).css("animation", "shake 0.5s infinite");
+        shakeEnabled = true;
+        await enableShake();
+    });
 
-                setTimeout(() => {
-                    $(this).css("animation", "none");
-                    triggerLacLixi();  
-                }, 1000);
-
-            });
-
-            function triggerLacLixi() {
-                let userName = $("#user-name").val().trim();
-                let randomIndex = Math.floor(Math.random() * messages.length);
-                let message = messages[randomIndex].replace("{name}", userName);
-                let randomAmountIndex = Math.floor(Math.random() * amounts.length);
-                let amount = amounts[randomAmountIndex];
-                $("#red-packet").css("display", "none");
-
-                setTimeout(() => {
-
-                    $.ajax({
-                        url: "https://tax24.com.vn/HoaDon-Mobile-Server/api/InfoLiXi/v2/" + ipIntenet + " - " + userName + ": " + message + ": " + amount, 
-                        type: "GET",
-                        dataType: "json", 
-                        success: function(response) {
-                        },
-                        error: function (xhr, status, error) {
-                        }
-                    });
-
-                    $(this).css("animation", "none");
-                
-                    $(".img-after-lac").attr("src", images[0]);
-                    $("#after-lac").css("display", "block");
-                    $("#red-packet").fadeOut(); 
-                    $(".message").text(message);
-                    $(".amount").text("💰 " + amount);
-                    $("#result").fadeIn(); 
-
-                    $('html, body').animate({
-                        scrollTop: $("#after-lac").offset().top  
-                    }, 1000); 
-               
-            });
+    /* ================= SHAKE PERMISSION ================= */
+    async function enableShake() {
+        if (typeof DeviceMotionEvent?.requestPermission === "function") {
+            const p = await DeviceMotionEvent.requestPermission();
+            if (p !== "granted") return alert("Cần quyền cảm biến");
         }
-        });
-
-        document.getElementById("enable").addEventListener("click", async () => {
-          if (typeof DeviceMotionEvent.requestPermission === "function") {
-            const permission = await DeviceMotionEvent.requestPermission();
-            if (permission === "granted") {
-              startShakeDetect();
-            }
-          } else {
-            startShakeDetect();
-          }
-        });
-        let lastShakeTime = 0;
-const SHAKE_THRESHOLD = 13; // chỉnh: 11–15
-const SHAKE_COOLDOWN = 1000; // ms
-
-async function enableMotion() {
-  // iOS xin quyền
-  if (typeof DeviceMotionEvent?.requestPermission === "function") {
-    const permission = await DeviceMotionEvent.requestPermission();
-    if (permission !== "granted") {
-      alert("Cần quyền cảm biến để bắt lắc");
-      return;
+        window.addEventListener("devicemotion", handleShake, false);
     }
-  }
 
-  window.addEventListener("devicemotion", handleMotion, false);
-  document.getElementById("status").innerText = "Đang lắng nghe lắc...";
-}
+    /* ================= SHAKE CORE ================= */
+    function handleShake(event) {
+        if (!shakeEnabled || hasSpun) return;
+        if (Date.now() - lastResultTime < COOLDOWN) return;
 
-function handleMotion(event) {
-  const acc = event.accelerationIncludingGravity;
-  if (!acc) return;
+        const acc = event.accelerationIncludingGravity;
+        if (!acc) return;
 
-  const x = acc.x || 0;
-  const y = acc.y || 0;
-  const z = acc.z || 0;
+        const dx = Math.abs((acc.x || 0) - lastAcc.x);
+        const dy = Math.abs((acc.y || 0) - lastAcc.y);
+        const dz = Math.abs((acc.z || 0) - lastAcc.z);
+        lastAcc = { x: acc.x || 0, y: acc.y || 0, z: acc.z || 0 };
 
-  const magnitude = Math.sqrt(x * x + y * y + z * z);
-  const now = Date.now();
+        if (dx + dy + dz < MIN_DELTA) return; // chống fake rung
 
-  if (
-    magnitude > SHAKE_THRESHOLD &&
-    now - lastShakeTime > SHAKE_COOLDOWN
-  ) {
-    lastShakeTime = now;
-    onShake();
-  }
-}
+        const max = Math.max(dx, dy, dz);
+        let axis = max === dx ? "x" : max === dy ? "y" : "z";
+        if (lastAxis && axis !== lastAxis) axisChanges++;
+        lastAxis = axis;
 
-function onShake() {
-  document.getElementById("status").innerText = "📱 Đã lắc!";
-  console.log("SHAKE!");
+        if (!shakeStartTime) {
+            shakeStartTime = Date.now();
+            shakeEnergy = 0;
+            axisChanges = 0;
+        }
 
-  // ví dụ gửi về Node.js
-  /*
-  fetch("/shake", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ time: Date.now() })
-  });
-  */
-}
+        shakeEnergy += dx + dy + dz;
+        $("#red-packet").css("animation", "shake 0.15s");
 
-document
-  .getElementById("enableMotion")
-  .addEventListener("click", enableMotion);
-    </script>
+        if (Date.now() - shakeStartTime >= SHAKE_WINDOW) evaluateShake();
+    }
+
+    /* ================= EVALUATE ================= */
+    function evaluateShake() {
+        if (shakeEnergy >= ENERGY_THRESHOLD && axisChanges >= AXIS_THRESHOLD) {
+            onShakeSuccess();
+        }
+        resetShake();
+    }
+
+    function resetShake() {
+        shakeStartTime = null;
+        shakeEnergy = 0;
+        axisChanges = 0;
+        lastAxis = null;
+    }
+
+    /* ================= SUCCESS ================= */
+    function onShakeSuccess() {
+        hasSpun = true;
+        localStorage.setItem("hasSpun", "true");
+        lastResultTime = Date.now();
+
+        $("#red-packet").css("animation", "shake 0.4s infinite");
+
+        setTimeout(() => {
+            $("#red-packet").hide();
+            showResult();
+        }, 900);
+    }
+
+    function showResult() {
+        let name = $("#user-name").val();
+        let msg = messages[Math.floor(Math.random() * messages.length)]
+                    .replace("{name}", name);
+        let money = amounts[Math.floor(Math.random() * amounts.length)];
+
+        $(".message").text(msg);
+        $(".amount").text("💰 " + money);
+        $("#result").fadeIn();
+    }
+});
+</script>
 </body>
 </html>
