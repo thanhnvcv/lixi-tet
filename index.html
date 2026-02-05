@@ -106,16 +106,28 @@ $(document).ready(function () {
     const COOLDOWN = 5000;         // chống spam
 
     /* ================= START ================= */
-    $("#start-btn").click(async function () {
-        let name = $("#user-name").val().trim();
-        if (!name) return alert("Vui lòng nhập tên!");
+ $("#start-btn").click(async function () {
+    let name = $("#user-name").val().trim();
+    if (!name) {
+        alert("Vui lòng nhập tên!");
+        return;
+    }
 
-        $("#user-input").hide();
-        $("#red-packet").fadeIn();
+    // 🔴 QUAN TRỌNG: chặn iOS Shake-to-Undo
+    $("#user-name").blur().prop("disabled", true);
 
-        shakeEnabled = true;
-        await enableShake();
-    });
+    // 1️⃣ Ẩn màn hình nhập
+    $("#user-input").fadeOut(300);
+
+    // 2️⃣ Hiện bao lì xì
+    setTimeout(() => {
+        $("#red-packet").fadeIn(300);
+    }, 300);
+
+    // 3️⃣ Chỉ lúc này mới cho phép lắc
+    shakeEnabled = true;
+    await enableShake();
+});
 
     /* ================= SHAKE PERMISSION ================= */
     async function enableShake() {
@@ -197,6 +209,12 @@ $(document).ready(function () {
         $(".amount").text("💰 " + money);
         $("#result").fadeIn();
     }
+	
+	document.addEventListener("touchstart", () => {
+		if (document.activeElement?.tagName === "INPUT") {
+			document.activeElement.blur();
+		}
+	}, { passive: true });
 });
 </script>
 </body>
