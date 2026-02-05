@@ -16,7 +16,7 @@ html, body {
     font-family: Arial, sans-serif;
 }
 
-/* ===== MÀN LẮC ===== */
+/* ===== SHAKE SCREEN ===== */
 #shake-screen {
     position: fixed;
     inset: 0;
@@ -33,23 +33,21 @@ html, body {
     touch-action: none;
 }
 
-/* ===== HƯỚNG DẪN ===== */
 #shake-hint {
     margin-top: 20px;
     font-size: 16px;
     color: #d6336c;
-    text-align: center;
 }
 
 /* ===== BUTTON ===== */
 #start-wrap {
     position: fixed;
     inset: 0;
+    background: rgba(0,0,0,0.5);
     display: flex;
     justify-content: center;
     align-items: center;
-    background: rgba(0,0,0,0.5);
-    z-index: 999;
+    z-index: 10;
 }
 
 #start-shake {
@@ -61,7 +59,16 @@ html, body {
     color: #fff;
 }
 
-/* ===== KẾT QUẢ ===== */
+/* ===== SHAKE ANIMATION ===== */
+@keyframes shake {
+    0% { transform: translate(-18px,0); }
+    25% { transform: translate(18px,0); }
+    50% { transform: translate(-18px,0); }
+    75% { transform: translate(18px,0); }
+    100% { transform: translate(0,0); }
+}
+
+/* ===== RESULT ===== */
 #result {
     display: none;
     position: fixed;
@@ -72,61 +79,59 @@ html, body {
 }
 
 .amount {
-    font-size: 26px;
+    font-size: 28px;
     font-weight: bold;
     color: #d6336c;
+}
+
+/* ===== CONFETTI ===== */
+.confetti {
+    position: fixed;
+    width: 10px;
+    height: 10px;
+    top: -10px;
+    animation: fall linear forwards;
+}
+
+@keyframes fall {
+    to {
+        transform: translateY(110vh) rotate(360deg);
+        opacity: 0;
+    }
 }
 </style>
 </head>
 
 <body>
 
-<!-- BUTTON XIN QUYỀN -->
+<!-- BUTTON -->
 <div id="start-wrap">
     <button id="start-shake">🧧 Lắc lì xì</button>
 </div>
 
-<!-- MÀN LẮC -->
+<!-- SHAKE -->
 <div id="shake-screen">
-    <img id="red-packet" src="./baolixi.jpg" alt="Lì xì">
+    <img id="red-packet" src="./baolixi.jpg">
     <div id="shake-hint">📱 Lắc điện thoại hoặc nhấn <b>Lắc lì xì</b></div>
 </div>
 
-<!-- KẾT QUẢ -->
+<!-- RESULT -->
 <div id="result">
     <p id="msg"></p>
     <p class="amount" id="money"></p>
 </div>
 
-<!-- ÂM THANH -->
-<audio id="shake-sound" preload="auto" src="./shake.mp3"></audio>
-<audio id="open-sound" preload="auto" src="./open.mp3"></audio>
+<!-- AUDIO -->
+<audio id="shake-sound" src="./shake.mp3" preload="auto"></audio>
+<audio id="open-sound" src="./open.mp3" preload="auto"></audio>
 
 <script>
-/* ===== QUAY VỀ MÀN NHẬP TÊN KHI RELOAD ===== */
-window.addEventListener("pageshow", e => {
-    if (e.persisted) location.replace("index.html");
-});
-
 /* ===== DATA ===== */
-const name = sessionStorage.getItem("playerName") || "Bạn";
 const amounts = ["20,000 VNĐ","50,000 VNĐ","100,000 VNĐ","150,000 VNĐ"];
-const messages = [
-    `Chúc ${name} năm mới phát tài!`,
-    `Tiền vô ào ào nha ${name}!`,
-    `Một năm rực rỡ đang chờ ${name}!`
-];
-
-/* ===== CONFIG ===== */
-const SHAKE_TIME = 2500; // 2–3s
-const ARM_FORCE = 12;
-const MIN_FORCE = 4;
-const MAX_SHAKE_PX = 30;
+const messages = ["Chúc năm mới phát tài!", "Tiền vô như nước!", "Lộc xuân đầy túi!"];
 
 /* ===== STATE ===== */
-let lastAcc = null;
-let armed = false;
-let startTime = 0;
+let shaking = false;
 let finished = false;
 let canPlaySound = false;
 
@@ -134,88 +139,56 @@ let canPlaySound = false;
 const packet = document.getElementById("red-packet");
 const startBtn = document.getElementById("start-shake");
 const startWrap = document.getElementById("start-wrap");
-const hint = document.getElementById("shake-hint");
 const shakeSound = document.getElementById("shake-sound");
 const openSound = document.getElementById("open-sound");
 
-/* ===== BUTTON CLICK ===== */
-startBtn.addEventListener("click", async () => {
-    startWrap.style.display = "none";
-    hint.style.display = "none";
-
-    // xin quyền iOS
-    if (typeof DeviceMotionEvent?.requestPermission === "function") {
-        const permission = await DeviceMotionEvent.requestPermission();
-        if (permission !== "granted") {
-            alert("Vui lòng cho phép quyền chuyển động để lắc lì xì");
-            location.reload();
-            return;
-        }
-    }
-
-    // unlock audio iOS
-    shakeSound.play().then(() => {
-        shakeSound.pause();
-        shakeSound.currentTime = 0;
+/* ===== UNLOCK AUDIO ===== */
+function unlockAudio(audio) {
+    audio.muted = true;
+    audio.play().then(() => {
+        audio.pause();
+        audio.currentTime = 0;
+        audio.muted = false;
         canPlaySound = true;
     }).catch(()=>{});
+}
 
-    setTimeout(() => {
-        window.addEventListener("devicemotion", onMotion, false);
-    }, 500);
-});
+/* ===== START SHAKE ===== */
+function startShake() {
+    if (shaking || finished) return;
 
-/* ===== HANDLE SHAKE ===== */
-function onMotion(e) {
-    if (finished) return;
+    shaking = true;
 
-    const acc = e.accelerationIncludingGravity;
-    if (!acc) return;
+    packet.style.animation = "shake 0.25s infinite";
 
-    if (!lastAcc) {
-        lastAcc = { x: acc.x, y: acc.y, z: acc.z };
-        return;
-    }
-
-    const dx = Math.abs(acc.x - lastAcc.x);
-    const dy = Math.abs(acc.y - lastAcc.y);
-    const dz = Math.abs(acc.z - lastAcc.z);
-    lastAcc = { x: acc.x, y: acc.y, z: acc.z };
-
-    const force = dx + dy + dz;
-    if (force < MIN_FORCE) return;
-
-    if (!armed) {
-        if (force >= ARM_FORCE) {
-            armed = true;
-            startTime = Date.now();
-        }
-        return;
-    }
-
-    // rung + âm thanh khi lắc mạnh
-    if (navigator.vibrate && force > 8) navigator.vibrate(30);
-    if (canPlaySound && force > 8) {
-        shakeSound.volume = Math.min(1, force / 20);
-        shakeSound.currentTime = 0;
+    if (canPlaySound) {
+        shakeSound.loop = true;
+        shakeSound.volume = 0.6;
         shakeSound.play().catch(()=>{});
     }
 
-    const intensity = Math.min(MAX_SHAKE_PX, force * 1.5);
-    packet.style.transform =
-        `translate(${(Math.random()-0.5)*intensity}px,
-                   ${(Math.random()-0.5)*intensity}px)`;
-
-    if (Date.now() - startTime >= SHAKE_TIME) finish();
+    setTimeout(openLixi, 2500);
 }
 
-/* ===== FINISH ===== */
-function finish() {
+/* ===== OPEN LIXI ===== */
+function openLixi() {
+    if (finished) return;
     finished = true;
-    packet.style.transform = "";
+    shaking = false;
 
-    if (navigator.vibrate) navigator.vibrate([100,50,100]);
-    if (canPlaySound) openSound.play().catch(()=>{});
+    packet.style.animation = "";
+    shakeSound.pause();
+    shakeSound.currentTime = 0;
+
+    if (canPlaySound) {
+        openSound.play().catch(()=>{});
+        setTimeout(() => {
+            openSound.pause();
+            openSound.currentTime = 0;
+        }, 1000);
+    }
+
+    launchConfetti();
 
     setTimeout(() => {
         document.getElementById("shake-screen").style.display = "none";
@@ -226,6 +199,44 @@ function finish() {
         document.getElementById("result").style.display = "block";
     }, 400);
 }
+
+/* ===== CONFETTI ===== */
+function launchConfetti() {
+    for (let i = 0; i < 80; i++) {
+        const c = document.createElement("div");
+        c.className = "confetti";
+        c.style.left = Math.random() * 100 + "vw";
+        c.style.background =
+            `hsl(${Math.random() * 360},100%,50%)`;
+        c.style.animationDuration = (2 + Math.random() * 2) + "s";
+        document.body.appendChild(c);
+        setTimeout(() => c.remove(), 4000);
+    }
+}
+
+/* ===== BUTTON CLICK ===== */
+startBtn.addEventListener("click", async () => {
+    startWrap.style.display = "none";
+
+    if (typeof DeviceMotionEvent?.requestPermission === "function") {
+        const p = await DeviceMotionEvent.requestPermission();
+        if (p !== "granted") return;
+    }
+
+    unlockAudio(shakeSound);
+    unlockAudio(openSound);
+
+    startShake();
+});
+
+/* ===== DEVICE SHAKE ===== */
+window.addEventListener("devicemotion", e => {
+    if (shaking || finished) return;
+    const acc = e.accelerationIncludingGravity;
+    if (!acc) return;
+    const force = Math.abs(acc.x) + Math.abs(acc.y) + Math.abs(acc.z);
+    if (force > 20) startShake();
+});
 </script>
 
 </body>
