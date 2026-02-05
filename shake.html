@@ -42,69 +42,85 @@ body {
 </div>
 
 <script>
+
 const name = sessionStorage.getItem("playerName") || "Bạn";
+
 const amounts = ["20,000 VNĐ","50,000 VNĐ","100,000 VNĐ","150,000 VNĐ"];
 const messages = [
     `Chúc ${name} năm mới phát tài!`,
-    `Chúc ${name} may mắn cả năm!`,
-    `Tiền vô như nước nhé ${name}!`
+    `Tiền vô ào ào nha ${name}!`,
+    `Một năm rực rỡ đang chờ ${name}!`
 ];
 
-let shakeEnergy = 0;
-let lastAcc = {x:0,y:0,z:0};
+let lastAcc = { x: 0, y: 0, z: 0 };
 let startTime = null;
-let done = false;
+let totalEnergy = 0;
+let finished = false;
 
-const WINDOW = 2500;
-const ENERGY = 130;
+const SHAKE_WINDOW = 3500;   // 3.5s
+const ENERGY_THRESHOLD = 140;
+const MIN_DELTA = 3;
 
-if (typeof DeviceMotionEvent?.requestPermission === "function") {
-    DeviceMotionEvent.requestPermission().then(p => {
-        if (p === "granted") start();
-    });
-} else {
-    start();
+function requestMotion() {
+    if (typeof DeviceMotionEvent?.requestPermission === "function") {
+        DeviceMotionEvent.requestPermission().then(p => {
+            if (p === "granted") startShake();
+        });
+    } else {
+        startShake();
+    }
 }
 
-function start() {
-    window.addEventListener("devicemotion", e => {
-        if (done) return;
+function startShake() {
+    window.addEventListener("devicemotion", handleShake, false);
+}
 
-        const a = e.accelerationIncludingGravity;
-        if (!a) return;
+requestMotion();
 
-        const dx = Math.abs(a.x - lastAcc.x);
-        const dy = Math.abs(a.y - lastAcc.y);
-        const dz = Math.abs(a.z - lastAcc.z);
-        lastAcc = {x:a.x,y:a.y,z:a.z};
+function handleShake(e) {
+    if (finished) return;
 
-        if (dx + dy + dz < 3) return;
+    const acc = e.accelerationIncludingGravity;
+    if (!acc) return;
 
-        if (!startTime) {
-            startTime = Date.now();
-            shakeEnergy = 0;
-        }
+    const dx = Math.abs(acc.x - lastAcc.x);
+    const dy = Math.abs(acc.y - lastAcc.y);
+    const dz = Math.abs(acc.z - lastAcc.z);
+    lastAcc = { x: acc.x, y: acc.y, z: acc.z };
 
-        shakeEnergy += dx + dy + dz;
-        document.getElementById("red-packet").style.animation = "shake 0.15s";
+    const force = dx + dy + dz;
+    if (force < MIN_DELTA) return;
 
-        if (Date.now() - startTime >= WINDOW) finish();
-    });
+    if (!startTime) {
+        startTime = Date.now();
+        totalEnergy = 0;
+    }
+
+    totalEnergy += force;
+
+    // 🔥 map lực → độ rung (px)
+    const intensity = Math.min(20, force * 1.2);
+    document.getElementById("red-packet").style.transform =
+        `translateX(${(Math.random() > 0.5 ? 1 : -1) * intensity}px)`;
+
+    if (Date.now() - startTime >= SHAKE_WINDOW) finish();
 }
 
 function finish() {
-    done = true;
+    finished = true;
+    document.getElementById("red-packet").style.transform = "";
     document.getElementById("red-packet").style.animation = "shake 0.4s infinite";
 
     setTimeout(() => {
         document.getElementById("red-packet").style.display = "none";
         document.getElementById("msg").innerText =
-            messages[Math.floor(Math.random()*messages.length)];
+            messages[Math.floor(Math.random() * messages.length)];
         document.getElementById("money").innerText =
-            "💰 " + amounts[Math.floor(Math.random()*amounts.length)];
+            "💰 " + amounts[Math.floor(Math.random() * amounts.length)];
         document.getElementById("result").style.display = "block";
     }, 800);
 }
+
 </script>
 
 </body>
