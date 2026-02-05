@@ -16,11 +16,12 @@ html, body {
     font-family: Arial, sans-serif;
 }
 
-/* màn lắc */
+/* ===== MÀN LẮC ===== */
 #shake-screen {
     position: fixed;
     inset: 0;
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
 }
@@ -32,28 +33,35 @@ html, body {
     touch-action: none;
 }
 
-/* overlay xin quyền */
-#motion-overlay {
+/* ===== HƯỚNG DẪN ===== */
+#shake-hint {
+    margin-top: 20px;
+    font-size: 16px;
+    color: #d6336c;
+    text-align: center;
+}
+
+/* ===== BUTTON ===== */
+#start-wrap {
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,0.6);
-    color: #fff;
     display: flex;
     justify-content: center;
     align-items: center;
+    background: rgba(0,0,0,0.5);
     z-index: 999;
+}
+
+#start-shake {
+    padding: 16px 30px;
     font-size: 20px;
-    text-align: center;
-    padding: 20px;
+    border-radius: 30px;
+    border: none;
+    background: linear-gradient(45deg,#ff5733,#d6336c);
+    color: #fff;
 }
 
-/* animation khi mở */
-@keyframes shake {
-    0%,100% { transform: translateX(-12px); }
-    50% { transform: translateX(12px); }
-}
-
-/* kết quả */
+/* ===== KẾT QUẢ ===== */
 #result {
     display: none;
     position: fixed;
@@ -73,34 +81,35 @@ html, body {
 
 <body>
 
-<!-- overlay bắt buộc tap -->
-<div id="motion-overlay">
-    👆 Chạm vào màn hình để bắt đầu lắc
+<!-- BUTTON XIN QUYỀN -->
+<div id="start-wrap">
+    <button id="start-shake">🧧 Lắc lì xì</button>
 </div>
 
+<!-- MÀN LẮC -->
 <div id="shake-screen">
     <img id="red-packet" src="./baolixi.jpg" alt="Lì xì">
+    <div id="shake-hint">📱 Lắc điện thoại hoặc nhấn <b>Lắc lì xì</b></div>
 </div>
 
+<!-- KẾT QUẢ -->
 <div id="result">
     <p id="msg"></p>
     <p class="amount" id="money"></p>
 </div>
 
-<script>
-/* ================= REDIRECT KHI RELOAD / MỞ TRỰC TIẾP ================= */
-if (!sessionStorage.getItem("fromIndex")) {
-    location.replace("index.html");
-}
-sessionStorage.removeItem("fromIndex");
+<!-- ÂM THANH -->
+<audio id="shake-sound" preload="auto" src="./shake.mp3"></audio>
+<audio id="open-sound" preload="auto" src="./open.mp3"></audio>
 
+<script>
+/* ===== QUAY VỀ MÀN NHẬP TÊN KHI RELOAD ===== */
 window.addEventListener("pageshow", e => {
     if (e.persisted) location.replace("index.html");
 });
-/* ===================================================================== */
 
+/* ===== DATA ===== */
 const name = sessionStorage.getItem("playerName") || "Bạn";
-
 const amounts = ["20,000 VNĐ","50,000 VNĐ","100,000 VNĐ","150,000 VNĐ"];
 const messages = [
     `Chúc ${name} năm mới phát tài!`,
@@ -108,43 +117,55 @@ const messages = [
     `Một năm rực rỡ đang chờ ${name}!`
 ];
 
-const SHAKE_WINDOW = 2500; // 2.5s
+/* ===== CONFIG ===== */
+const SHAKE_TIME = 2500; // 2–3s
 const ARM_FORCE = 12;
 const MIN_FORCE = 4;
 const MAX_SHAKE_PX = 30;
 
+/* ===== STATE ===== */
 let lastAcc = null;
 let armed = false;
-let startTime = null;
+let startTime = 0;
 let finished = false;
+let canPlaySound = false;
 
+/* ===== ELEMENT ===== */
 const packet = document.getElementById("red-packet");
-const overlay = document.getElementById("motion-overlay");
+const startBtn = document.getElementById("start-shake");
+const startWrap = document.getElementById("start-wrap");
+const hint = document.getElementById("shake-hint");
+const shakeSound = document.getElementById("shake-sound");
+const openSound = document.getElementById("open-sound");
 
-/* ================= XIN QUYỀN CẢM BIẾN ================= */
-overlay.addEventListener("click", async () => {
-    overlay.style.display = "none";
+/* ===== BUTTON CLICK ===== */
+startBtn.addEventListener("click", async () => {
+    startWrap.style.display = "none";
+    hint.style.display = "none";
 
+    // xin quyền iOS
     if (typeof DeviceMotionEvent?.requestPermission === "function") {
         const permission = await DeviceMotionEvent.requestPermission();
         if (permission !== "granted") {
             alert("Vui lòng cho phép quyền chuyển động để lắc lì xì");
-            location.replace("index.html");
+            location.reload();
             return;
         }
     }
 
-    startListening();
-});
-/* ====================================================== */
+    // unlock audio iOS
+    shakeSound.play().then(() => {
+        shakeSound.pause();
+        shakeSound.currentTime = 0;
+        canPlaySound = true;
+    }).catch(()=>{});
 
-function startListening() {
-    // bỏ rung nền ban đầu
     setTimeout(() => {
         window.addEventListener("devicemotion", onMotion, false);
-    }, 800);
-}
+    }, 500);
+});
 
+/* ===== HANDLE SHAKE ===== */
 function onMotion(e) {
     if (finished) return;
 
@@ -164,7 +185,6 @@ function onMotion(e) {
     const force = dx + dy + dz;
     if (force < MIN_FORCE) return;
 
-    // chưa kích hoạt → cần cú lắc mạnh đầu tiên
     if (!armed) {
         if (force >= ARM_FORCE) {
             armed = true;
@@ -173,19 +193,29 @@ function onMotion(e) {
         return;
     }
 
-    // rung theo lực
+    // rung + âm thanh khi lắc mạnh
+    if (navigator.vibrate && force > 8) navigator.vibrate(30);
+    if (canPlaySound && force > 8) {
+        shakeSound.volume = Math.min(1, force / 20);
+        shakeSound.currentTime = 0;
+        shakeSound.play().catch(()=>{});
+    }
+
     const intensity = Math.min(MAX_SHAKE_PX, force * 1.5);
     packet.style.transform =
-        `translate(${(Math.random() - 0.5) * intensity}px,
-                   ${(Math.random() - 0.5) * intensity}px)`;
+        `translate(${(Math.random()-0.5)*intensity}px,
+                   ${(Math.random()-0.5)*intensity}px)`;
 
-    if (Date.now() - startTime >= SHAKE_WINDOW) finish();
+    if (Date.now() - startTime >= SHAKE_TIME) finish();
 }
 
+/* ===== FINISH ===== */
 function finish() {
     finished = true;
     packet.style.transform = "";
-    packet.style.animation = "shake 0.35s infinite";
+
+    if (navigator.vibrate) navigator.vibrate([100,50,100]);
+    if (canPlaySound) openSound.play().catch(()=>{});
 
     setTimeout(() => {
         document.getElementById("shake-screen").style.display = "none";
@@ -194,7 +224,7 @@ function finish() {
         document.getElementById("money").innerText =
             "💰 " + amounts[Math.floor(Math.random() * amounts.length)];
         document.getElementById("result").style.display = "block";
-    }, 700);
+    }, 400);
 }
 </script>
 
