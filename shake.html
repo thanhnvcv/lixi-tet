@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Lắc mở lì xì</title>
+
 <style>
 html, body {
     margin: 0;
@@ -26,14 +27,13 @@ html, body {
 #red-packet {
     width: 90vw;
     max-width: 420px;
-    height: auto;
     user-select: none;
     touch-action: none;
 }
 
 @keyframes shake {
-    0%,100% { transform: translateX(-10px); }
-    50% { transform: translateX(10px); }
+    0%,100% { transform: translateX(-12px); }
+    50% { transform: translateX(12px); }
 }
 
 #result {
@@ -52,18 +52,30 @@ html, body {
 }
 </style>
 </head>
-<body>
-  <div id="shake-screen">
-    <img id="red-packet" src="./baolixi.jpg" alt="Lì xì">
-  </div>
 
-  <div id="result">
+<body>
+
+<div id="shake-screen">
+    <img id="red-packet" src="./baolixi.jpg" alt="Lì xì">
+</div>
+
+<div id="result">
     <p id="msg"></p>
     <p class="amount" id="money"></p>
-  </div>
-</body>
+</div>
 
 <script>
+/* ================= REDIRECT KHI RELOAD / MỞ TRỰC TIẾP ================= */
+if (!sessionStorage.getItem("fromIndex")) {
+    location.replace("index.html");
+}
+sessionStorage.removeItem("fromIndex");
+
+// nếu reload bằng swipe/back cache (iOS)
+window.addEventListener("pageshow", e => {
+    if (e.persisted) location.replace("index.html");
+});
+/* ===================================================================== */
 
 const name = sessionStorage.getItem("playerName") || "Bạn";
 
@@ -74,13 +86,13 @@ const messages = [
     `Một năm rực rỡ đang chờ ${name}!`
 ];
 
-const SHAKE_WINDOW = 2500;   // 3.5s lắc
-const ARM_FORCE = 12;       // lực để kích hoạt lần đầu
-const MIN_FORCE = 4;        // lọc rung nhẹ
-const MAX_SHAKE_PX = 22;
+const SHAKE_WINDOW = 2500; // 2.5s
+const ARM_FORCE = 12;
+const MIN_FORCE = 4;
+const MAX_SHAKE_PX = 30;
 
 let lastAcc = null;
-let armed = false;          // 👈 CHƯA kích hoạt
+let armed = false;
 let startTime = null;
 let finished = false;
 
@@ -97,10 +109,9 @@ function initMotion() {
 }
 
 function startListening() {
-    // ⛔ BỎ QUA 1s ĐẦU
     setTimeout(() => {
         window.addEventListener("devicemotion", onMotion, false);
-    }, 1000);
+    }, 1000); // bỏ rung nền ban đầu
 }
 
 initMotion();
@@ -122,24 +133,22 @@ function onMotion(e) {
     lastAcc = { x: acc.x, y: acc.y, z: acc.z };
 
     const force = dx + dy + dz;
-
-    // ❌ rung nhẹ → bỏ
     if (force < MIN_FORCE) return;
 
-    // 🔒 CHƯA ARMED → đợi cú lắc MẠNH
+    // chưa kích hoạt
     if (!armed) {
         if (force >= ARM_FORCE) {
             armed = true;
             startTime = Date.now();
-            console.log("🔥 SHAKE START");
         }
         return;
     }
 
-    // 🔥 ĐÃ ARMED → rung theo lực
-    const intensity = Math.min(MAX_SHAKE_PX, force * 1.3);
+    // rung theo lực
+    const intensity = Math.min(MAX_SHAKE_PX, force * 1.5);
     packet.style.transform =
-        `translateX(${(Math.random() > 0.5 ? 1 : -1) * intensity}px)`;
+        `translate(${(Math.random() - 0.5) * intensity}px,
+                   ${(Math.random() - 0.5) * intensity}px)`;
 
     if (Date.now() - startTime >= SHAKE_WINDOW) finish();
 }
@@ -147,16 +156,16 @@ function onMotion(e) {
 function finish() {
     finished = true;
     packet.style.transform = "";
-    packet.style.animation = "shake 0.4s infinite";
+    packet.style.animation = "shake 0.35s infinite";
 
     setTimeout(() => {
-        packet.style.display = "none";
+        document.getElementById("shake-screen").style.display = "none";
         document.getElementById("msg").innerText =
             messages[Math.floor(Math.random() * messages.length)];
         document.getElementById("money").innerText =
             "💰 " + amounts[Math.floor(Math.random() * amounts.length)];
         document.getElementById("result").style.display = "block";
-    }, 800);
+    }, 700);
 }
 </script>
 
