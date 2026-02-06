@@ -6,288 +6,186 @@
 <title>Lắc lì xì</title>
 
 <style>
-html, body {
-    margin: 0;
-    width: 100%;
-    height: 100%;
-    background: #ffecd2;
-    overflow: hidden;
-    font-family: Arial;
+html,body{
+    margin:0;height:100%;overflow:hidden;
+    background:#ffecd2;font-family:Arial;
 }
+#unlock{
+    position:fixed;inset:0;z-index:10;
+    background:rgba(0,0,0,.85);color:#fff;
+    display:flex;align-items:center;justify-content:center;
+    text-align:center;font-size:20px;
+}
+#shake-screen{
+    position:fixed;inset:0;
+    display:flex;flex-direction:column;
+    align-items:center;justify-content:center;
+}
+#packet{width:80vw;max-width:400px;}
+#money{
+    position:absolute;width:120px;
+    opacity:0;transform:translateY(40px) scale(.6);
+}
+#btn{
+    margin-top:20px;
+    padding:14px 30px;font-size:18px;
+    border-radius:30px;border:none;
+    background:linear-gradient(45deg,#ff5733,#d6336c);
+    color:#fff;
+}
+#result{
+    display:none;position:fixed;inset:0;
+    text-align:center;padding-top:35vh;
+}
+.amount{font-size:28px;font-weight:bold;color:#d6336c;}
 
-/* ===== UNLOCK ===== */
-#unlock {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.85);
-    color: #fff;
-    z-index: 10;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 20px;
-    text-align: center;
+@keyframes shake{
+    0%{transform:translateX(-18px)}
+    50%{transform:translateX(18px)}
+    100%{transform:translateX(0)}
 }
-
-/* ===== SHAKE ===== */
-#shake-screen {
-    position: fixed;
-    inset: 0;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
+@keyframes moneyOut{
+    to{opacity:1;transform:translateY(-150px) scale(1.1)}
 }
-
-#packet {
-    width: 85vw;
-    max-width: 420px;
-}
-
-#money {
-    position: absolute;
-    width: 120px;
-    opacity: 0;
-    transform: translateY(40px) scale(0.6);
-    pointer-events: none;
-}
-
-#hint {
-    margin-top: 20px;
-    color: #d6336c;
-}
-
-#btn {
-    margin-top: 15px;
-    padding: 14px 30px;
-    font-size: 18px;
-    border-radius: 30px;
-    border: none;
-    background: linear-gradient(45deg,#ff5733,#d6336c);
-    color: #fff;
-}
-
-/* ===== RESULT ===== */
-#result {
-    display: none;
-    position: fixed;
-    inset: 0;
-    text-align: center;
-    padding-top: 35vh;
-}
-
-.amount {
-    font-size: 28px;
-    font-weight: bold;
-    color: #d6336c;
-}
-
-/* ===== ANIMATION ===== */
-@keyframes shake {
-    0% { transform: translate(-18px, 0); }
-    25% { transform: translate(18px, 0); }
-    50% { transform: translate(-18px, 0); }
-    75% { transform: translate(18px, 0); }
-    100% { transform: translate(0, 0); }
-}
-
-@keyframes moneyOut {
-    to {
-        opacity: 1;
-        transform: translateY(-150px) scale(1.1);
-    }
-}
-
-.money-out {
-    animation: moneyOut 0.8s ease-out forwards;
-}
+.money-out{animation:moneyOut .8s forwards}
 </style>
 </head>
 
 <body>
 
 <div id="unlock">
-    👆 Chạm màn hình để bắt đầu<br>
-    📱 Sau đó lắc điện thoại
+👆 Chạm màn hình để bắt đầu<br>
+📱 Sau đó lắc điện thoại
 </div>
 
 <div id="shake-screen">
-    <img id="packet" src="./baolixi.jpg">
-    <img id="money" src="./money.png">
-    <div id="hint">📱 Lắc điện thoại hoặc nhấn <b>Lắc lì xì</b></div>
-    <button id="btn">🧧 Lắc lì xì</button>
+<img id="packet" src="./baolixi.jpg">
+<img id="money" src="./money.png">
+<button id="btn">🧧 Lắc lì xì</button>
 </div>
 
 <div id="result">
-    <p id="msg"></p>
-    <p class="amount" id="amount"></p>
+<p id="msg"></p>
+<p class="amount" id="amount"></p>
 </div>
 
-<!-- AUDIO -->
-<audio id="bgm" src="./bgm.mp3" loop preload="auto"></audio>
-<audio id="shakeSound" src="./shake.mp3" preload="auto"></audio>
-<audio id="openSound" src="./open.mp3" preload="auto"></audio>
+<audio id="bgm" src="./bgm.mp3" loop></audio>
+<audio id="shakeSound" src="./shake.mp3"></audio>
+<audio id="openSound" src="./open.mp3"></audio>
 
 <script>
-/* ===== DATA ===== */
+/* ===== GUARD ===== */
+(function(){
+    if(!sessionStorage.getItem("fromIndex")){
+        sessionStorage.clear();
+        location.replace("index.html");
+    }
+    sessionStorage.removeItem("fromIndex");
+})();
+
 const name = sessionStorage.getItem("username");
-const userType = sessionStorage.getItem("userType");
-if (!name) location.href = "index.html";
+const type = sessionStorage.getItem("userType");
+if(!name||!type) location.replace("index.html");
 
-const messageMap = {
-    kid: [
-        `Chúc ${name} ngoan ngoãn, học giỏi, hay ăn chóng lớn 🎈`,
-        `${name} nhận lì xì rồi nha, mau lớn khỏe mạnh nhé 🧸`,
-        `Chúc ${name} luôn vui vẻ, cười tươi mỗi ngày 🎉`
-    ],
-    youth: [
-        `Chúc ${name} năm mới bùng nổ năng lượng 🔥`,
-        `Tiền vô như nước, tình duyên như ý nhé ${name} 💖`,
-        `${name} năm nay học tập – công việc đều lên 🚀`
-    ],
-    adult: [
-        `Chúc ${name} sức khỏe dồi dào, gia đình bình an 🍀`,
-        `Năm mới vạn sự như ý, phát tài phát lộc ${name} 💰`,
-        `Chúc ${name} làm ăn thuận lợi, an khang thịnh vượng 🧧`
-    ]
+/* ===== DATA ===== */
+const messages={
+    kid:[`Chúc ${name} hay ăn chóng lớn 🎈`,`Chúc ${name} luôn vui vẻ 🧸`],
+    youth:[`Chúc ${name} bùng nổ năng lượng 🔥`,`Tiền vô như nước 💰`],
+    adult:[`Chúc ${name} an khang thịnh vượng 🧧`,`Sức khỏe – tài lộc đầy nhà 🍀`]
 };
-
-const messages = messageMap[userType];
-const amounts = ["20,000 VNĐ","50,000 VNĐ","100,000 VNĐ"];
+const amounts=["20,000","50,000","100,000"];
 
 /* ===== STATE ===== */
-let unlocked = false;
-let shaking = false;
-let finished = false;
-
-let lastMotionTime = 0;
-let shakeStopTimer = null;
-
-/* ===== CONFIG ===== */
-const FORCE_THRESHOLD = 16;     // ngưỡng lắc (X/Y)
-const SHAKE_STOP_DELAY = 600;  // dừng lắc 0.6s → bung
-const BUTTON_SHAKE_TIME = 3500;
+let unlocked=false,shaking=false,finished=false;
+let stopTimer=null;
 
 /* ===== ELEMENT ===== */
-const packet = document.getElementById("packet");
-const money = document.getElementById("money");
-const bgm = document.getElementById("bgm");
-const shakeSound = document.getElementById("shakeSound");
-const openSound = document.getElementById("openSound");
+const packet=document.getElementById("packet");
+const money=document.getElementById("money");
+const bgm=document.getElementById("bgm");
+const shakeSound=document.getElementById("shakeSound");
+const openSound=document.getElementById("openSound");
 
-/* ===== AUDIO UNLOCK ===== */
-function unlockAudio(audio){
-    audio.muted = true;
-    audio.play().then(()=>{
-        audio.pause();
-        audio.currentTime = 0;
-        audio.muted = false;
-    }).catch(()=>{});
-}
+/* ===== UNLOCK (FIX iOS) ===== */
+async function unlock(e){
+    if(unlocked) return;
+    unlocked=true;
+    e.preventDefault();
 
-/* ===== UNLOCK SCREEN ===== */
-document.getElementById("unlock").addEventListener("touchstart", async () => {
-    if (unlocked) return;
-    unlocked = true;
-
-    if (typeof DeviceMotionEvent?.requestPermission === "function") {
-        const p = await DeviceMotionEvent.requestPermission();
-        if (p !== "granted") return;
+    if(typeof DeviceMotionEvent?.requestPermission==="function"){
+        const p=await DeviceMotionEvent.requestPermission();
+        if(p!=="granted"){unlocked=false;return;}
     }
 
-    unlockAudio(bgm);
-    unlockAudio(shakeSound);
-    unlockAudio(openSound);
+    [bgm,shakeSound,openSound].forEach(a=>{
+        a.muted=true;a.play().then(()=>{
+            a.pause();a.currentTime=0;a.muted=false;
+        }).catch(()=>{});
+    });
 
-    bgm.volume = 0.4;
-    bgm.play().catch(()=>{});
+    bgm.volume=.4;bgm.play().catch(()=>{});
+    document.getElementById("unlock").style.display="none";
+}
 
-    document.getElementById("unlock").style.display = "none";
+["click","touchstart","pointerdown"].forEach(ev=>{
+    unlockEl=document.getElementById("unlock");
+    unlockEl.addEventListener(ev,unlock,{passive:false});
 });
 
-/* ===== SHAKE ANIMATION ===== */
-function startShakeAnimation() {
-    if (shaking || finished) return;
-    shaking = true;
-
-    packet.style.animation = "shake 0.25s infinite";
-
-    shakeSound.loop = true;
-    shakeSound.currentTime = 0;
+/* ===== SHAKE ===== */
+function startShake(){
+    if(shaking||finished) return;
+    shaking=true;
+    packet.style.animation="shake .25s infinite";
+    shakeSound.loop=true;
     shakeSound.play().catch(()=>{});
-
-    if (navigator.vibrate) {
-        navigator.vibrate([80, 40, 80]);
-    }
+    navigator.vibrate?.([80,40,80]);
 }
-
-function stopShakeAnimation() {
-    packet.style.animation = "";
-    shakeSound.pause();
-    shakeSound.currentTime = 0;
-    shaking = false;
+function stopShake(){
+    packet.style.animation="";
+    shakeSound.pause();shakeSound.currentTime=0;
+    shaking=false;
 }
 
 /* ===== OPEN ===== */
-function openLixi() {
-    if (finished) return;
-    finished = true;
-
-    stopShakeAnimation();
-
-    if (navigator.vibrate) {
-        navigator.vibrate([120, 60, 120]);
-    }
-
+function openLixi(){
+    if(finished) return;
+    finished=true;
+    stopShake();
+    navigator.vibrate?.([120,60,120]);
     openSound.play().catch(()=>{});
-    setTimeout(()=>openSound.pause(), 1000);
-
     money.classList.add("money-out");
 
-    setTimeout(() => {
-        document.getElementById("shake-screen").style.display = "none";
-        document.getElementById("msg").innerText =
-            messages[Math.floor(Math.random()*messages.length)];
-        document.getElementById("amount").innerText =
-            "💰 " + amounts[Math.floor(Math.random()*amounts.length)];
-        document.getElementById("result").style.display = "block";
-    }, 800);
+    const data=JSON.parse(localStorage.getItem("lixi_played_names")||"{}");
+    data[name.toLowerCase()]=true;
+    localStorage.setItem("lixi_played_names",JSON.stringify(data));
+
+    setTimeout(()=>{
+        document.getElementById("shake-screen").style.display="none";
+        msg.innerText=messages[type][Math.floor(Math.random()*messages[type].length)];
+        amount.innerText="💰 "+amounts[Math.floor(Math.random()*amounts.length)];
+        result.style.display="block";
+        sessionStorage.clear();
+    },800);
 }
 
-/* ===== BUTTON SHAKE ===== */
-document.getElementById("btn").onclick = () => {
-    if (!unlocked || finished) return;
-
-    startShakeAnimation();
-
-    setTimeout(() => {
-        stopShakeAnimation();
-        openLixi();
-    }, BUTTON_SHAKE_TIME);
+/* ===== BUTTON ===== */
+btn.onclick=()=>{
+    if(!unlocked||finished) return;
+    startShake();
+    setTimeout(openLixi,3500);
 };
 
-/* ===== DEVICE SHAKE (X/Y OPTIMIZED) ===== */
-window.addEventListener("devicemotion", e => {
-    if (!unlocked || finished) return;
-
-    const a = e.accelerationIncludingGravity;
-    if (!a) return;
-
-    // 👉 chỉ dùng X/Y (chống fake rung Z)
-    const force = Math.abs(a.x) + Math.abs(a.y);
-
-    if (force > FORCE_THRESHOLD) {
-        lastMotionTime = Date.now();
-
-        if (!shaking) {
-            startShakeAnimation();
-        }
-
-        clearTimeout(shakeStopTimer);
-        shakeStopTimer = setTimeout(() => {
-            stopShakeAnimation();
-            openLixi();
-        }, SHAKE_STOP_DELAY);
+/* ===== DEVICE MOTION (X/Y) ===== */
+window.addEventListener("devicemotion",e=>{
+    if(!unlocked||finished) return;
+    const a=e.accelerationIncludingGravity;
+    if(!a) return;
+    const force=Math.abs(a.x)+Math.abs(a.y);
+    if(force>16){
+        startShake();
+        clearTimeout(stopTimer);
+        stopTimer=setTimeout(openLixi,600);
     }
 });
 </script>
