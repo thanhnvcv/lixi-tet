@@ -229,7 +229,14 @@ function openLixi(){
     stopShake();
 
     navigator.vibrate?.([120,60,120]);
+    openSound.currentTime = 0;
     openSound.play().catch(()=>{});
+    
+    /* ⏱️ chỉ cho kêu 2.5s */
+    setTimeout(() => {
+        openSound.pause();
+        openSound.currentTime = 0;
+    }, 2500);
 
     money.classList.add("money-out");
 
