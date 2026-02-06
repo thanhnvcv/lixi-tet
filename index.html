@@ -12,7 +12,6 @@ body {
     text-align: center;
     padding-top: 20vh;
 }
-
 input {
     padding: 12px;
     width: 240px;
@@ -21,8 +20,7 @@ input {
     border: 2px solid #d6336c;
     text-align: center;
 }
-
-.type-btn {
+button {
     margin: 10px;
     padding: 12px 22px;
     font-size: 16px;
@@ -41,20 +39,29 @@ input {
 
 <h3>Bạn thuộc nhóm nào?</h3>
 
-<button class="type-btn" onclick="start('kid')">🧒 Trẻ em</button>
-<button class="type-btn" onclick="start('youth')">🧑 Bạn trẻ</button>
-<button class="type-btn" onclick="start('adult')">👨‍👩‍👧 Người lớn</button>
+<button onclick="start('kid')">🧒 Trẻ em</button>
+<button onclick="start('youth')">🧑 Bạn trẻ</button>
+<button onclick="start('adult')">👨‍👩‍👧 Người lớn</button>
 
 <script>
+function hasPlayed(name) {
+    const data = JSON.parse(localStorage.getItem("lixi_played_names") || "{}");
+    return !!data[name.toLowerCase()];
+}
+
 function start(type) {
     const name = document.getElementById("name").value.trim();
-    if (!name) {
-        alert("Vui lòng nhập tên!");
+    if (!name) return alert("Vui lòng nhập tên!");
+
+    if (hasPlayed(name)) {
+        alert("⚠️ Tên này đã nhận lì xì rồi 🧧");
         return;
     }
 
+    sessionStorage.clear();
     sessionStorage.setItem("username", name);
     sessionStorage.setItem("userType", type);
+    sessionStorage.setItem("fromIndex", "1");
 
     location.href = "shake.html";
 }
