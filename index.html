@@ -20,14 +20,23 @@ input {
     border: 2px solid #d6336c;
     text-align: center;
 }
-button {
+.choice {
+    display: inline-block;
     margin: 10px;
-    padding: 12px 22px;
+    padding: 14px 26px;
     font-size: 16px;
     border-radius: 25px;
-    border: none;
     background: linear-gradient(45deg,#ff5733,#d6336c);
     color: white;
+    cursor: pointer;
+    user-select: none;
+}
+.choice:active {
+    transform: scale(0.96);
+}
+#error {
+    color: red;
+    margin-top: 10px;
 }
 </style>
 </head>
@@ -39,32 +48,44 @@ button {
 
 <h3>Bạn thuộc nhóm nào?</h3>
 
-<button onclick="start('kid')">🧒 Trẻ em</button>
-<button onclick="start('youth')">🧑 Bạn trẻ</button>
-<button onclick="start('adult')">👨‍👩‍👧 Người lớn</button>
+<div class="choice" data-type="kid">🧒 Trẻ em</div>
+<div class="choice" data-type="youth">🧑 Bạn trẻ</div>
+<div class="choice" data-type="adult">👨‍👩‍👧 Người lớn</div>
+
+<div id="error"></div>
 
 <script>
+const errorEl = document.getElementById("error");
+
 function hasPlayed(name) {
     const data = JSON.parse(localStorage.getItem("lixi_played_names") || "{}");
     return !!data[name.toLowerCase()];
 }
 
-function start(type) {
-    const name = document.getElementById("name").value.trim();
-    if (!name) return alert("Vui lòng nhập tên!");
+document.querySelectorAll(".choice").forEach(btn => {
+    btn.addEventListener("click", () => {
+        const name = document.getElementById("name").value.trim();
+        const type = btn.dataset.type;
 
-    if (hasPlayed(name)) {
-        alert("⚠️ Tên này đã nhận lì xì rồi 🧧");
-        return;
-    }
+        if (!name) {
+            errorEl.innerText = "⚠️ Vui lòng nhập tên";
+            return;
+        }
 
-    sessionStorage.clear();
-    sessionStorage.setItem("username", name);
-    sessionStorage.setItem("userType", type);
-    sessionStorage.setItem("fromIndex", "1");
+        if (hasPlayed(name)) {
+            errorEl.innerText = "⚠️ Tên này đã nhận lì xì rồi";
+            return;
+        }
 
-    location.href = "shake.html";
-}
+        sessionStorage.clear();
+        sessionStorage.setItem("username", name);
+        sessionStorage.setItem("userType", type);
+        sessionStorage.setItem("fromIndex", "1");
+
+        // ⏩ chuyển trang an toàn (iOS OK)
+        window.location.assign("shake.html");
+    });
+});
 </script>
 
 </body>
