@@ -216,7 +216,7 @@ function openLixi(){
     money.classList.add("money-out");
 
     setTimeout(()=>{
-        screen.style.display="none";
+        <!-- screen.style.display="none"; -->
         msg.innerText=messages[type][Math.floor(Math.random()*messages[type].length)];
         amount.innerText="💰 "+amounts[Math.floor(Math.random()*amounts.length)];
         result.style.display="block";
