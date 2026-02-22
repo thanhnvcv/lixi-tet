@@ -39,7 +39,8 @@ html,body{
 }
 #money{
     position:absolute;
-    width:130px;
+    width:85vw;
+    max-width:420px;
     opacity:0;
     transform:translateY(40px) scale(.6);
     pointer-events:none;
@@ -183,6 +184,12 @@ function openLixi(){
     if(finished) return;
     finished=true;
     stopShake();
+	
+	// hide img lixi
+	document.getElementById("packet").style.display = "none";
+	
+	//hide btn
+	document.getElementById("btn").style.display = "none";
 
     // volume theo lực lắc
     let volume=Math.min(1,0.4+maxShakeForce/30);
