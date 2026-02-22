@@ -96,7 +96,7 @@ html,body{
     <p class="amount" id="amount"></p>
 </div>
 
-<audio id="bgm" src="./bgm.mp3" loop></audio>
+
 <audio id="shakeSound" src="./shake.mp3"></audio>
 <audio id="openSound" src="./open.mp3"></audio>
 
@@ -200,7 +200,7 @@ function openLixi(){
     openSound.play().catch(()=>{});
 
     // fade out 2.5s
-    let dur=2500,step=50;
+    let dur=50000,step=50;
     let dec=openSound.volume/(dur/step);
     let fade=setInterval(()=>{
         if(openSound.volume>dec){
